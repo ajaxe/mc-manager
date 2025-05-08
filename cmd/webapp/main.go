@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
+	"github.com/ajaxe/mc-manager/internal/client"
 	"github.com/ajaxe/mc-manager/internal/pages"
+	"github.com/ajaxe/mc-manager/internal/server"
+	"github.com/labstack/echo/v4"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
@@ -15,12 +15,12 @@ func main() {
 
 	app.RunWhenOnBrowser()
 
-	http.Handle("/", &app.Handler{
-		Name:        "Hello",
-		Description: "An Hello World! example",
+	s := server.NewBackendApi()
+
+	s.GET("/*", func(c echo.Context) error {
+		client.GoAppHandler.ServeHTTP(c.Response(), c.Request())
+		return nil
 	})
 
-	if err := http.ListenAndServe(":8000", nil); err != nil {
-		log.Fatal(err)
-	}
+	server.Start(s)
 }
