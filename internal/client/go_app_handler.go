@@ -15,4 +15,7 @@ var GoAppHandler = &app.Handler{
 		"/web/scripts/common.js",
 	},
 	Fonts: []string{"/web/font/fonts/bootstrap-icons.woff2"},
+	HTML: func() app.HTMLHtml {
+		return app.Html().DataSet("bs-theme", "dark")
+	},
 }

@@ -15,7 +15,7 @@ func (c *CodeUpdate) OnAppUpdate(ctx app.Context) {
 }
 
 func (c *CodeUpdate) Render() app.UI {
-	return app.Div().Class("toast-container top-0 start-50 translate-middle-x").
+	return app.Div().Class("toast-container top-0 start-50 translate-middle-x p-3").
 		Body(
 			app.If(c.updateAvailable, func() app.UI {
 				return c.updateToast()
@@ -31,10 +31,10 @@ func (c *CodeUpdate) updateToast() app.UI {
 		Aria("live", "assertive").
 		Aria("atomic", "true").
 		Body(
-			app.Div().Class(("d-flex")).Body(
-				app.Div().Class("toast-body").Body(
-					app.P().Class("fw-normal").Body(
-						app.Text("A new version of the app is available."),
+			app.Div().Class(("d-flex p-2")).Body(
+				app.Div().Class("toast-body p-2").Body(
+					app.P().Class("fw-normal text-nowrap p-0 m-0").Body(
+						app.Text("A new version of the app is available"),
 					),
 				),
 				app.Button().

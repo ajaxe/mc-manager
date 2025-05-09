@@ -10,7 +10,13 @@ type Server struct {
 }
 
 func LoadAppConfig() AppConfig {
-	return AppConfig{}
+	return AppConfig{
+		Server: Server{
+			Port:     "8000",
+			CertFile: "F:\\mkcert\\certificates\\localhost+2.pem",
+			KeyFile:  "F:\\mkcert\\certificates\\localhost+2-key.pem",
+		},
+	}
 }
 
 func (a AppConfig) UseTLS() bool {

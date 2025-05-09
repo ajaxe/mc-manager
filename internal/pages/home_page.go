@@ -10,9 +10,9 @@ type HomePage struct {
 }
 
 func (h *HomePage) Render() app.UI {
-	return app.Main().
-		Body(
-			app.Div().Text("Welcome to the Home Page!").Class("home-page"),
-			components.AppCodeUpdate(),
-		)
+	return &MainLayout{
+		Content: []app.UI{
+			components.AppWorldItemList(),
+		},
+	}
 }
