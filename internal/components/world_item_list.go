@@ -44,6 +44,7 @@ func (w *WorldItemList) Render() app.UI {
 						app.Div().Class("col").Body(
 							&WorldItemCard{
 								Item: w.items[i],
+								active: i == 0,
 							},
 						),
 					)

@@ -12,7 +12,6 @@ type WorldAdd struct {
 }
 
 func (w *WorldAdd) Render() app.UI {
-
 	return app.Div().Class("row").Body(
 		app.Div().Class("col").Body(
 			app.If(!w.addMode, func() app.UI {
@@ -50,7 +49,7 @@ func (w *WorldAdd) form() app.UI {
 			app.Button().
 				Class("btn btn-secondary ms-2").
 				Text("Cancel").
-				OnClick(func(ctx app.Context, e app.Event){
+				OnClick(func(ctx app.Context, e app.Event) {
 					w.addMode = false
 				}),
 		),

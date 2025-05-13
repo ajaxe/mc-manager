@@ -59,6 +59,16 @@ func (w *WorldItemEdit) Render() app.UI {
 						},
 					},
 				},
+				&FormSelect{
+					Label: "World gamemode",
+					SelectItems: map[string]string{
+						"survival":  "Survival",
+						"creative":  "Creative",
+						"adventure": "Adventure",
+					},
+					Value:  w.WorldItem.GameMode,
+					BindTo: &w.WorldItem.GameMode,
+				},
 			),
 		)
 }

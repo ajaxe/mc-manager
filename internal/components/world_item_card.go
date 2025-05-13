@@ -7,7 +7,8 @@ import (
 
 type WorldItemCard struct {
 	app.Compo
-	Item *models.WorldItem
+	Item   *models.WorldItem
+	active bool
 }
 
 func (w *WorldItemCard) Render() app.UI {
@@ -15,7 +16,13 @@ func (w *WorldItemCard) Render() app.UI {
 		ID(w.Item.ID.Hex()).
 		Class("card mt-2").Body(
 		app.Div().Class("card-body").Body(
-			app.H5().Class("card-title").Text(w.Item.Name),
+			app.H5().Class("card-title").
+				Body(
+					app.Text(w.Item.Name+"  "),
+					&WorldSelectBtn{
+						active: w.active,
+					},
+				),
 			app.H6().Class("card-subtitle mb-2 text-body-secondary").Text(w.Item.Description),
 			app.P().Class("card-text").Text("WorldSeed: "+w.Item.WorldSeed),
 		),

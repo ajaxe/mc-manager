@@ -118,3 +118,27 @@ func (c *FormCheckbox) toggleCheck(v *bool) app.EventHandler {
 		*v = checked
 	}
 }
+
+type FormSelect struct {
+	app.Compo
+	Label       string
+	SelectItems map[string]string
+	Value       string
+	BindTo      any
+}
+
+func (f *FormSelect) Render() app.UI {
+	return app.Select().
+		Class("form-select").
+		Aria("label", f.Label).
+		Body(
+			app.Option().Selected(true).Text(f.Label),
+			app.Range(f.SelectItems).Map(func(key string) app.UI {
+				return app.Option().
+					Value(key).
+					Text(f.SelectItems[key]).
+					Selected(f.Value == key)
+			}),
+		).
+		OnChange(f.ValueTo(f.BindTo))
+}
