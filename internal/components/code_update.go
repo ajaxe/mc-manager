@@ -6,7 +6,6 @@ import (
 
 type CodeUpdate struct {
 	app.Compo
-
 	updateAvailable bool
 }
 

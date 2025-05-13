@@ -7,4 +7,5 @@ type WorldItem struct {
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
 	WorldSeed   string        `bson:"world_seed" json:"worldSeed"`
+	CreateDate  string        `bson:"create_date" json:"createDate"`
 }

@@ -11,7 +11,9 @@ type WorldItemCard struct {
 }
 
 func (w *WorldItemCard) Render() app.UI {
-	return app.Div().Class("card mt-2").Body(
+	return app.Div().
+		ID(w.Item.ID.Hex()).
+		Class("card mt-2").Body(
 		app.Div().Class("card-body").Body(
 			app.H5().Class("card-title").Text(w.Item.Name),
 			app.H6().Class("card-subtitle mb-2 text-body-secondary").Text(w.Item.Description),

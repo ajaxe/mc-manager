@@ -9,3 +9,6 @@ func NewAppName() *AppName {
 func AppWorldItemList() *WorldItemList {
 	return &WorldItemList{}
 }
+func AppWorldAdd() *WorldAdd {
+	return &WorldAdd{}
+}

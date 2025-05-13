@@ -11,17 +11,17 @@ type MainLayout struct {
 }
 
 func (m *MainLayout) Render() app.UI {
-	return app.Div().Class("container").Body(
-		app.Div().Class("row").Body(
-			app.Div().Class("col").Body(
-				components.NewAppName(),
-			),
+	e := []app.UI{ m.appName(), components.AppCodeUpdate()}
+
+	e = append(e, m.Content...)
+
+	return app.Div().Class("container").Body(e...)
+}
+
+func (m *MainLayout) appName() app.UI {
+	return app.Div().Class("row").Body(
+		app.Div().Class("col").Body(
+			components.NewAppName(),
 		),
-		app.Div().Class("row").Body(
-			app.Div().Class("col").Body(
-				m.Content...,
-			),
-		),
-		components.AppCodeUpdate(),
 	)
 }
