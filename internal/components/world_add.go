@@ -8,36 +8,19 @@ import (
 type WorldAdd struct {
 	app.Compo
 	WordItem *models.WorldItem
-	addMode  bool
 }
 
 func (w *WorldAdd) Render() app.UI {
 	return app.Div().Class("row").Body(
 		app.Div().Class("col").Body(
-			app.If(!w.addMode, func() app.UI {
-				return w.addBtn()
-			}),
-			app.If(w.addMode, func() app.UI {
-				return w.form()
-			}),
+			w.form(),
 		),
-	)
-}
-
-func (w *WorldAdd) addBtn() app.UI {
-	c := "btn-primary"
-	t := "Add a new world"
-	return app.Div().Body(
-		app.Button().
-			Class("btn " + c).
-			Text(t).
-			OnClick(w.showAddView),
 	)
 }
 
 func (w *WorldAdd) form() app.UI {
 	wi := &models.WorldItem{}
-	return app.Div().Class("card mt-2").Body(
+	return app.Div().Class("card mt-2 bg-dark-subtle ").Body(
 		app.Div().Class("card-body").Body(
 			&WorldItemEdit{
 				WorldItem: wi,
@@ -48,18 +31,8 @@ func (w *WorldAdd) form() app.UI {
 				Text("Add"),
 			app.Button().
 				Class("btn btn-secondary ms-2").
-				Text("Cancel").
-				OnClick(func(ctx app.Context, e app.Event) {
-					w.addMode = false
-				}),
+				Text("Cancel"),
 		),
 	)
 }
 
-func (w *WorldAdd) showAddView(ctx app.Context, e app.Event) {
-	if w.addMode {
-		w.addMode = false
-	} else {
-		w.addMode = true
-	}
-}

@@ -125,10 +125,15 @@ type FormSelect struct {
 	SelectItems map[string]string
 	Value       string
 	BindTo      any
+	ID          string
 }
 
 func (f *FormSelect) Render() app.UI {
+	if f.ID == "" {
+		f.ID = fmt.Sprintf("sel-%v", time.Now().UnixMicro())
+	}
 	return app.Select().
+		ID(f.ID).
 		Class("form-select").
 		Aria("label", f.Label).
 		Body(

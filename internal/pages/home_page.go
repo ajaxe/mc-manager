@@ -12,7 +12,6 @@ type HomePage struct {
 func (h *HomePage) Render() app.UI {
 	return &MainLayout{
 		Content: []app.UI{
-			components.AppWorldAdd(),
 			components.AppWorldItemList(),
 		},
 	}

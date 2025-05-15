@@ -18,7 +18,7 @@ func (w *WorldItemEdit) Render() app.UI {
 			app.H5().Text(w.title),
 			app.Form().Body(
 				&FormControl{
-					Compact: true,
+					Compact: false,
 					Content: []app.UI{
 						&FormText{
 							ID:          "world-name",
@@ -32,7 +32,7 @@ func (w *WorldItemEdit) Render() app.UI {
 					},
 				},
 				&FormControl{
-					Compact: true,
+					Compact: false,
 					Content: []app.UI{
 						&FormText{
 							ID:          "world-desc",
@@ -46,7 +46,7 @@ func (w *WorldItemEdit) Render() app.UI {
 					},
 				},
 				&FormControl{
-					Compact: true,
+					Compact: false,
 					Content: []app.UI{
 						&FormText{
 							ID:          "world-seed",

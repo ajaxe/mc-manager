@@ -37,16 +37,15 @@ func (w *WorldItemList) OnMount(ctx app.Context) {
 func (w *WorldItemList) Render() app.UI {
 
 	return app.Div().
+		Class("row row-cols-1 row-cols-md-2 g-4").
 		Body(
 			app.Range(w.items).
 				Slice(func(i int) app.UI {
-					return app.Div().Class("row").Body(
-						app.Div().Class("col").Body(
-							&WorldItemCard{
-								item:   w.items[i],
-								active: i == 0,
-							},
-						),
+					return app.Div().Class("col").Body(
+						&WorldItemCard{
+							item:   w.items[i],
+							active: i == 0,
+						},
 					)
 				}),
 		)
