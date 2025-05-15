@@ -17,7 +17,7 @@ type WorldItemCard struct {
 func (w *WorldItemCard) Render() app.UI {
 	return app.Div().
 		ID(w.item.ID.Hex()).
-		Class("card mt-2").Body(
+		Class("card mt-2 bg-dark-subtle").Body(
 		app.Div().Class("card-body").Body(
 			app.H5().Class("card-title").
 				Body(
@@ -48,7 +48,7 @@ func (w *WorldItemCard) modeSelector() app.UI {
 			Value:  w.item.GameMode,
 			BindTo: &w.item.GameMode,
 		},
-		
+
 		app.Button().Class("btn btn-link").Text("Change mode").
 			OnClick(func(ctx app.Context, e app.Event) {
 				e.PreventDefault()

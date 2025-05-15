@@ -11,7 +11,7 @@ func (a *AppName) Render() app.UI {
 		a.logo(),
 		app.Div().Class("app-name").Body(
 			app.H1().Class("d-none d-md-block").Text("Minecraft Server Manager"),
-			app.H1().Class("d-sm-none").Text("MC Manager"),
+			app.H1().Class("d-block d-sm-block d-md-none").Text("MC Manager"),
 			app.P().Text("Manage your Minecraft servers with ease."),
 		),
 	)

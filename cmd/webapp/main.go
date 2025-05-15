@@ -13,6 +13,9 @@ func main() {
 	// The main function will initialize the application and start the server.
 	app.Route("/", func() app.Composer { return &pages.HomePage{} })
 	app.Route("/worlds", func() app.Composer { return &pages.HomePage{} })
+	app.Route("/worlds/add", func() app.Composer { return &pages.WorldAddPage{} })
+	app.Route("/launches", func() app.Composer { return &pages.WorldLaunchPage{} })
+	app.Route("/setup", func() app.Composer { return &pages.SetupPage{} })
 
 	app.RunWhenOnBrowser()
 
