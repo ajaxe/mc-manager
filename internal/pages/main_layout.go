@@ -11,11 +11,20 @@ type MainLayout struct {
 }
 
 func (m *MainLayout) Render() app.UI {
-	e := []app.UI{ m.appName(), components.AppCodeUpdate()}
 
-	e = append(e, m.Content...)
-
-	return app.Div().Class("container").Body(e...)
+	return app.Div().Class("container").Body(
+		m.appName(),
+		components.AppCodeUpdate(),
+		app.Div().Class("row mt-4").Body(
+			app.Div().Class("col-auto").
+				Body(
+					components.AppSidebarMenu(),
+				),
+			app.Div().Class("col").Body(
+				app.Main().Body(m.Content...),
+			),
+		),
+	)
 }
 
 func (m *MainLayout) appName() app.UI {

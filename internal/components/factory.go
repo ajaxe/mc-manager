@@ -12,3 +12,6 @@ func AppWorldItemList() *WorldItemList {
 func AppWorldAdd() *WorldAdd {
 	return &WorldAdd{}
 }
+func AppSidebarMenu() *SidebarMenu {
+	return &SidebarMenu{}
+}
