@@ -3,9 +3,9 @@ package components
 import (
 	"fmt"
 
+	"github.com/ajaxe/mc-manager/internal/client"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 type WorldItemList struct {
@@ -13,25 +13,12 @@ type WorldItemList struct {
 	items []*models.WorldItem
 }
 
-func (w *WorldItemList) OnNav(ctx app.Context) {
-	fmt.Printf("component navigated: %s\n", app.Window().URL())
-	w.items = []*models.WorldItem{
-		{
-			ID:          bson.NewObjectID(),
-			Name:        "World 1",
-			Description: "Description for World 1",
-			WorldSeed:   "Seed 1",
-		},
-		{
-			ID:          bson.NewObjectID(),
-			Name:        "World 2",
-			Description: "Description for World 2",
-			WorldSeed:   "Seed 2",
-		},
-	}
-}
 func (w *WorldItemList) OnMount(ctx app.Context) {
-
+	fmt.Printf("component mounted: %s\n", app.Window().URL())
+	ctx.ObserveState(client.StateKeyWorlds, &w.items).
+		OnChange(func() {
+			app.Log("OnMount world list")
+		})
 }
 
 func (w *WorldItemList) Render() app.UI {

@@ -10,3 +10,8 @@ type WorldItem struct {
 	GameMode    string        `bson:"game_mode" json:"gameMode"`
 	CreateDate  string        `bson:"create_date" json:"createDate"`
 }
+
+type WorldItemListResult struct {
+	ApiResult
+	Data []*WorldItem `json:"data"`
+}

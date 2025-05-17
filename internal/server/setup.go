@@ -24,6 +24,10 @@ func NewBackendApi() *echo.Echo {
 	e.Use(middleware.Recover())
 	e.Use(handlers.Healthcheck())
 
+	a := e.Group("/api")
+
+	handlers.AddWorldsHandlers(a, e.Logger)
+
 	return e
 }
 
