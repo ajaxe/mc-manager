@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
-	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
@@ -21,8 +21,8 @@ type worldsHandler struct {
 }
 
 func (w *worldsHandler) Worlds() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		w := []*models.WorldItem{
+	return func(c echo.Context) (err error) {
+		/* w := []*models.WorldItem{
 			{
 				ID:          bson.NewObjectID(),
 				Name:        "World 1",
@@ -35,6 +35,10 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 				Description: "Description for World 2",
 				WorldSeed:   "Seed 2",
 			},
+		} */
+		w, err := db.Worlds()
+		if err != nil {
+			return
 		}
 		return c.JSON(http.StatusOK, &models.WorldItemListResult{
 			Data: w,

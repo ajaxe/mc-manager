@@ -22,7 +22,6 @@ func (w *WorldItemList) OnMount(ctx app.Context) {
 }
 
 func (w *WorldItemList) Render() app.UI {
-
 	return app.Div().
 		Class("row row-cols-1 row-cols-md-2 g-4").
 		Body(
