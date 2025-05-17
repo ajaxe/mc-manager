@@ -11,6 +11,8 @@ build:
 	@pwsh -Command "Set-Item Env:GOARCH amd64; Set-Item Env:GOOS windows; go build -o ./tmp/server.exe ./cmd/webapp/"
 	@echo "Copying web files..."
 	@pwsh -Command "copy ./web/* ./tmp/web/ -Recurse -Force"
+	@echo "Copying config..."
+	@pwsh -Command "copy ./config.yaml ./tmp/ -Force"
 
 run: build
 	@echo "Running server..."

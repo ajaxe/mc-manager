@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/handlers"
-	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	elog "github.com/labstack/gommon/log"
@@ -28,7 +28,7 @@ func NewBackendApi() *echo.Echo {
 
 // Start echo server with graceful hanlding of process termination.
 func Start(e *echo.Echo) {
-	cfg := models.LoadAppConfig()
+	cfg := config.LoadAppConfig()
 	addr := fmt.Sprintf(":%v", cfg.Server.Port)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
