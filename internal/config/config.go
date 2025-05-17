@@ -10,6 +10,18 @@ type AppConfig struct {
 		ConnectionURI string `mapstructure:"connection_uri"`
 		DbName        string `mapstructure:"db_name"`
 	} `mapstructure:"database"`
+	GameServer struct {
+		HostingDir string   `mapstructure:"hosting_dir"`
+		ImageName  string   `mapstructure:"image_name"`
+		EnvVars    []string `mapstructure:"env_vars"`
+		Volumes    []string `mapstructure:"volumes"`
+		Labels     []string `mapstructure:"labels"`
+		Networks   []string `mapstructure:"networks"`
+		Logging    struct {
+			Driver  string            `mapstructure:"driver"`
+			Options map[string]string `mapstructure:"options"`
+		}
+	} `mapstructure:"game_server"`
 }
 
 func (a AppConfig) UseTLS() bool {
