@@ -84,29 +84,65 @@ func TestCreateGameServer(t *testing.T) {
 		t.Fatal("CreateGameServer returned an empty response ID")
 	}
 
-	t.Cleanup(func() {
-		if resp.ID == "" {
-			return
-		}
-		cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-		if err != nil {
-			return
-		}
-		defer cli.Close()
+	t.Cleanup(func() { cleanupContainer(resp, t) })
+}
 
-		e := cli.ContainerStop(context.Background(), resp.ID, container.StopOptions{})
+func TestGameServerIntance(t *testing.T) {
+	n := "test-world-hats-mayname"
+	worldItem := &models.WorldItem{
+		Name: n,
+	}
 
-		if e != nil {
-			fmt.Println(fmt.Errorf("error stopping container: ID=%v: %v", resp.ID, e))
-		} else {
-			fmt.Printf("Container stopped: ID=%v\n", resp.ID)
-		}
+	// Call the CreateGameServer function
+	resp, err := CreateGameServer(worldItem)
 
-		e = cli.ContainerRemove(context.Background(), resp.ID, container.RemoveOptions{Force: true})
-		if e != nil {
-			fmt.Println(fmt.Errorf("error removing container: ID=%v: %v", resp.ID, e))
-		} else {
-			fmt.Printf("Container removed: ID=%v\n", resp.ID)
-		}
-	})
+	// Check for errors
+	if err != nil {
+		t.Fatalf("CreateGameServer returned an error: %v", err)
+	}
+
+	// Check if the response is not empty
+	if resp.ID == "" {
+		t.Fatal("CreateGameServer returned an empty response ID")
+	}
+
+	result, err := GameServerIntance()
+
+	if err != nil {
+		t.Fatalf("GameServerIntance returned an error: %v", err)
+	}
+	if result == "" {
+		t.Fatal("GameServerIntance returned an empty name")
+	}
+	if result != n {
+		t.Fatalf("GameServerIntance returned an unexpected name: got %v, want %v", result, n)
+	}
+
+	t.Cleanup(func() { cleanupContainer(resp, t) })
+}
+
+func cleanupContainer(resp container.CreateResponse, t *testing.T) {
+	if resp.ID == "" {
+		return
+	}
+	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+
+	e := cli.ContainerStop(context.Background(), resp.ID, container.StopOptions{})
+
+	if e != nil {
+		t.Logf("%v\n", fmt.Errorf("error stopping container: ID=%v: %v", resp.ID, e))
+	} else {
+		t.Logf("Container stopped: ID=%v\n", resp.ID)
+	}
+
+	e = cli.ContainerRemove(context.Background(), resp.ID, container.RemoveOptions{Force: true})
+	if e != nil {
+		t.Logf("%v\n", fmt.Errorf("error removing container: ID=%v: %v", resp.ID, e))
+	} else {
+		t.Logf("Container removed: ID=%v\n", resp.ID)
+	}
 }

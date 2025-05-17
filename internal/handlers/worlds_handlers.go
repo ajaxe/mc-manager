@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
@@ -32,6 +33,20 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 		if err != nil {
 			return
 		}
+
+		n, err := gameServerIntance()
+		if err != nil {
+			return models.ErrAppGeneric(err)
+		}
+
+		for i := range w {
+			w[i].IsActive = w[i].Name == n
+		}
+
+		sort.Slice(w, func(i, j int) bool {
+			return w[i].IsActive == true && w[j].IsActive == false
+		})
+
 		return c.JSON(http.StatusOK, &models.WorldItemListResult{
 			Data: w,
 		})

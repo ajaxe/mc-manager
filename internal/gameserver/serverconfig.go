@@ -8,6 +8,8 @@ import (
 	"github.com/docker/docker/api/types/network"
 )
 
+const LabelImageName = "mc.manager.image.name"
+
 func defaultConfig() container.Config {
 	c := config.LoadAppConfig()
 
@@ -23,6 +25,7 @@ func defaultConfig() container.Config {
 		splits := strings.SplitN(l, "=", 2)
 		labels[splits[0]] = splits[1]
 	}
+	labels[LabelImageName] = c.GameServer.ImageName
 
 	return container.Config{
 		Image:   c.GameServer.ImageName,

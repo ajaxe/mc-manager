@@ -6,9 +6,9 @@ clean:
 
 build:
 	@echo "Building web app..."
-	@pwsh -Command "Set-Item Env:GOARCH wasm; Set-Item Env:GOOS js; go build -o ./tmp/web/app.wasm ./cmd/webapp"
+	@pwsh -Command "Set-Item Env:GOARCH wasm; Set-Item Env:GOOS js; go build -tags js -o ./tmp/web/app.wasm ./cmd/webapp/"
 	@echo "Building server..."
-	@pwsh -Command "Set-Item Env:GOARCH amd64; Set-Item Env:GOOS windows; go build -o ./tmp/server.exe ./cmd/webapp/"
+	@pwsh -Command "Set-Item Env:GOARCH amd64; Set-Item Env:GOOS windows; go build -tags windows -o ./tmp/server.exe ./cmd/webapp/"
 	@echo "Copying web files..."
 	@pwsh -Command "copy ./web/* ./tmp/web/ -Recurse -Force"
 	@echo "Copying config..."
