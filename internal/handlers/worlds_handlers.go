@@ -9,6 +9,7 @@ import (
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
@@ -18,6 +19,7 @@ func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
 
 	e.GET("/worlds", h.Worlds())
 	e.POST("/worlds", h.CreateWorld())
+	e.DELETE("/worlds/:id", h.DeleteWorld("id"))
 }
 
 type worldsHandler struct {
@@ -66,5 +68,20 @@ func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, models.NewApiIDResult(id))
+	}
+}
+func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		i := c.Param(idParam)
+		id, err := bson.ObjectIDFromHex(i)
+		if err != nil {
+			return models.ErrAppBadID(err)
+		}
+
+		if err := db.DeleteWorldByID(id); err != nil {
+			return models.ErrAppGeneric(err)
+		}
+
+		return c.NoContent(http.StatusNoContent)
 	}
 }

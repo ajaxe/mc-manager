@@ -16,3 +16,7 @@ func WorldCreate(w *models.WorldItem) (r models.ApiIDResult, err error) {
 	err = httpPost(buildApiURL(appBaseURL(), "/worlds"), w, &r)
 	return
 }
+
+func WorldDelete(id string) error {
+	return httpDelete(buildApiURL(appBaseURL(), "/worlds/"+id), nil)
+}

@@ -24,3 +24,6 @@ func InsertWorld(w *models.WorldItem) (id bson.ObjectID, err error) {
 	err = insertRecord(w, collectionWorlds)
 	return
 }
+func DeleteWorldByID(id bson.ObjectID) error {
+	return deleteByID(id, collectionWorlds)
+}

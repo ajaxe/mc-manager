@@ -29,7 +29,7 @@ func (w *WorldItemList) Render() app.UI {
 				Slice(func(i int) app.UI {
 					return app.Div().Class("col").Body(
 						&WorldItemCard{
-							item:   w.items[i],
+							Item:   w.items[i],
 							active: i == 0,
 						},
 					)
