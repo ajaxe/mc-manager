@@ -2,8 +2,31 @@ package models
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 )
+
+func ErrAppBadID(err error) *AppError {
+	return NewAppError(http.StatusBadRequest, "Invalid ID.", err)
+}
+
+func ErrAppGeneric(err error) *AppError {
+	return NewAppError(http.StatusInternalServerError, "Something went wrong.", err)
+}
+func ErrInvalidData(err error) *AppError {
+	return NewAppError(http.StatusBadRequest, "Invalid data.", err)
+}
+func ErrAppRequired(m string) *AppError {
+	return NewAppError(http.StatusBadRequest, fmt.Sprintf("%s is required.", m), nil)
+}
+
+func NewAppError(status int, message string, e error) *AppError {
+	return &AppError{
+		status:  status,
+		message: message,
+		err:     e,
+	}
+}
 
 type AppError struct {
 	status  int

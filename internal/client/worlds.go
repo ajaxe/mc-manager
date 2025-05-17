@@ -10,3 +10,9 @@ func WorldsList() (d models.WorldItemListResult, err error) {
 
 	return
 }
+
+func WorldCreate(w *models.WorldItem) (r models.ApiIDResult, err error) {
+	r = models.ApiIDResult{}
+	err = httpPost(buildApiURL(appBaseURL(), "/worlds"), w, &r)
+	return
+}
