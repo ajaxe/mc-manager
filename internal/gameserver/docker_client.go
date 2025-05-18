@@ -1,21 +1,25 @@
-// +build windows
+//go:build windows
 
 package gameserver
 
 import (
 	"net/http"
 
+	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/client"
+	"github.com/labstack/echo/v4"
 )
 
-func defaultDockerCli() (cli *client.Client, err error) {
+func defaultDockerCli(logger echo.Logger) (cli *client.Client, err error) {
 	cli, err = dockerCliWindows()
+	logger.Info("Fetching docker client on windows")
 	return
 }
 
 func dockerCliWindows() (cli *client.Client, err error) {
-	helper, err := connhelper.GetConnectionHelper("ssh://ajay@dockerhost.local")
+	c := config.LoadAppConfig()
+	helper, err := connhelper.GetConnectionHelper(c.Server.DockerHostURL)
 
 	if err != nil {
 		return

@@ -19,7 +19,7 @@ type GameServerOperations struct {
 
 // CreateGameServer creates a new game server container bades on the world item name.
 func (g *GameServerOperations) CreateGameServer(w *models.WorldItem) (resp container.CreateResponse, err error) {
-	cli, err := defaultDockerCli()
+	cli, err := defaultDockerCli(g.Logger)
 	if err != nil {
 		return
 	}
@@ -30,40 +30,19 @@ func (g *GameServerOperations) CreateGameServer(w *models.WorldItem) (resp conta
 
 // GameServerIntance returns List of docker container names which is running the configured Image
 func (g *GameServerOperations) GameServerIntance() (name []string, err error) {
-	cli, err := defaultDockerCli()
-	defer cli.Close()
-	if err != nil {
-		return
-	}
-
-	containers, err := listContainers(cli)
-	if err != nil {
-		return
-	}
-
-	if len(containers) == 0 {
-		return []string{}, nil
-	}
-
+	containers, err := g.GameServerDetails()
 	n := []string{}
-
 	for _, c := range containers {
-		n = append(n, strings.TrimPrefix(c.Names[0], "/"))
+		n = append(n, strings.TrimPrefix(c.Name, "/"))
 	}
 
 	return n, nil
 }
 
 func (g *GameServerOperations) StopGameServer(w *models.WorldItem) (err error) {
-	cli, err := defaultDockerCli()
-	if err != nil {
-		return
-	}
-	defer cli.Close()
-
 	name := ToContainerName(w.Name)
 
-	containers, err := listContainers(cli)
+	containers, err := g.GameServerDetails()
 	if err != nil {
 		return
 	}
@@ -72,14 +51,67 @@ func (g *GameServerOperations) StopGameServer(w *models.WorldItem) (err error) {
 		return
 	}
 
+	cli, err := defaultDockerCli(g.Logger)
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+
 	for _, c := range containers {
-		if strings.TrimPrefix(c.Names[0], "/") == name {
-			err = cli.ContainerStop(context.Background(), c.ID, container.StopOptions{})
-			err = cli.ContainerRemove(context.Background(), c.ID, container.RemoveOptions{Force: true})
+		if strings.TrimPrefix(c.WorldID, "/") == name {
+			err = cli.ContainerStop(context.Background(), c.ContainerID, container.StopOptions{})
+			err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
 		}
 	}
 
 	return
+}
+
+func (g *GameServerOperations) StopAllGameServers() (err error) {
+	containers, err := g.GameServerDetails()
+
+	cli, err := defaultDockerCli(g.Logger)
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+
+	for _, c := range containers {
+		if c.WorldID != "" {
+			err = cli.ContainerStop(context.Background(), c.ContainerID, container.StopOptions{})
+			err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
+		}
+	}
+
+	return
+}
+
+func (g *GameServerOperations) GameServerDetails() (details []*models.GameServerDetail, err error) {
+	cli, err := defaultDockerCli(g.Logger)
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+
+	containers, err := listContainers(cli)
+	if err != nil {
+		return
+	}
+
+	if len(containers) == 0 {
+		return []*models.GameServerDetail{}, nil
+	}
+
+	n := []*models.GameServerDetail{}
+
+	for _, c := range containers {
+		n = append(n, &models.GameServerDetail{
+			Name:    strings.TrimPrefix(c.Names[0], "/"),
+			WorldID: c.Labels[LabelWordId],
+		})
+	}
+
+	return n, nil
 }
 
 func listContainers(cli *client.Client) (containers []container.Summary, err error) {

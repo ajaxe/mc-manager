@@ -2,9 +2,10 @@ package config
 
 type AppConfig struct {
 	Server struct {
-		Port     string `mapstructure:"port"`
-		CertFile string `mapstructure:"cert_file"`
-		KeyFile  string `mapstructure:"key_file"`
+		Port          string `mapstructure:"port"`
+		CertFile      string `mapstructure:"cert_file"`
+		KeyFile       string `mapstructure:"key_file"`
+		DockerHostURL string `mapstructure:"docker_host_url"`
 	} `mapstructure:"server"`
 	Database struct {
 		ConnectionURI string `mapstructure:"connection_uri"`
