@@ -20,14 +20,18 @@ func NewGameService(logger echo.Logger) GameService {
 	}
 }
 func (g *gameService) gameServerIntance() (n []string, err error) {
-	n, err = g.op.GameServerIntance()
+	n, err = g.op.Intances()
 	return
 }
 
 func (g *gameService) createGameServer(w *models.WorldItem) (err error) {
-	_, err = g.op.CreateGameServer(w)
+	_, err = g.op.Create(w)
 	return
 }
+func (g *gameService) stopAllinstances() error {
+	return g.op.StopAll()
+}
+
 func toContainerName(s string) string {
 	return gameserver.ToContainerName(s)
 }

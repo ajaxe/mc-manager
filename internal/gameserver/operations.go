@@ -17,8 +17,8 @@ type GameServerOperations struct {
 	Logger echo.Logger
 }
 
-// CreateGameServer creates a new game server container bades on the world item name.
-func (g *GameServerOperations) CreateGameServer(w *models.WorldItem) (resp container.CreateResponse, err error) {
+// Create creates a new game server container bades on the world item name.
+func (g *GameServerOperations) Create(w *models.WorldItem) (resp container.CreateResponse, err error) {
 	cli, err := defaultDockerCli(g.Logger)
 	if err != nil {
 		return
@@ -28,9 +28,9 @@ func (g *GameServerOperations) CreateGameServer(w *models.WorldItem) (resp conta
 	return
 }
 
-// GameServerIntance returns List of docker container names which is running the configured Image
-func (g *GameServerOperations) GameServerIntance() (name []string, err error) {
-	containers, err := g.GameServerDetails()
+// Intances returns List of docker container names which is running the configured Image
+func (g *GameServerOperations) Intances() (name []string, err error) {
+	containers, err := g.Details()
 	n := []string{}
 	for _, c := range containers {
 		n = append(n, strings.TrimPrefix(c.Name, "/"))
@@ -39,10 +39,10 @@ func (g *GameServerOperations) GameServerIntance() (name []string, err error) {
 	return n, nil
 }
 
-func (g *GameServerOperations) StopGameServer(w *models.WorldItem) (err error) {
+func (g *GameServerOperations) Stop(w *models.WorldItem) (err error) {
 	name := ToContainerName(w.Name)
 
-	containers, err := g.GameServerDetails()
+	containers, err := g.Details()
 	if err != nil {
 		return
 	}
@@ -67,8 +67,8 @@ func (g *GameServerOperations) StopGameServer(w *models.WorldItem) (err error) {
 	return
 }
 
-func (g *GameServerOperations) StopAllGameServers() (err error) {
-	containers, err := g.GameServerDetails()
+func (g *GameServerOperations) StopAll() (err error) {
+	containers, err := g.Details()
 
 	cli, err := defaultDockerCli(g.Logger)
 	if err != nil {
@@ -86,7 +86,7 @@ func (g *GameServerOperations) StopAllGameServers() (err error) {
 	return
 }
 
-func (g *GameServerOperations) GameServerDetails() (details []*models.GameServerDetail, err error) {
+func (g *GameServerOperations) Details() (details []*models.GameServerDetail, err error) {
 	cli, err := defaultDockerCli(g.Logger)
 	if err != nil {
 		return

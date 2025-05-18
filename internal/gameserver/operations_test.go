@@ -24,7 +24,7 @@ func TestCreateGameServer(t *testing.T) {
 	sut := newSut()
 
 	// Call the CreateGameServer function
-	resp, err := sut.CreateGameServer(worldItem)
+	resp, err := sut.Create(worldItem)
 
 	// Check for errors
 	if err != nil {
@@ -48,7 +48,7 @@ func TestGameServerIntance(t *testing.T) {
 	sut := newSut()
 
 	// Call the CreateGameServer function
-	resp, err := sut.CreateGameServer(worldItem)
+	resp, err := sut.Create(worldItem)
 
 	// Check for errors
 	if err != nil {
@@ -60,7 +60,7 @@ func TestGameServerIntance(t *testing.T) {
 		t.Fatal("CreateGameServer returned an empty response ID")
 	}
 
-	result, err := sut.GameServerIntance()
+	result, err := sut.Intances()
 
 	if err != nil {
 		t.Fatalf("GameServerIntance returned an error: %v", err)
@@ -86,7 +86,7 @@ func TestGameServerDetail(t *testing.T) {
 	sut := newSut()
 
 	// Call the CreateGameServer function
-	resp, err := sut.CreateGameServer(worldItem)
+	resp, err := sut.Create(worldItem)
 
 	// Check for errors
 	if err != nil {
@@ -98,7 +98,7 @@ func TestGameServerDetail(t *testing.T) {
 		t.Fatal("CreateGameServer returned an empty response ID")
 	}
 
-	result, err := sut.GameServerDetails()
+	result, err := sut.Details()
 
 	if err != nil {
 		t.Fatalf("GameServerDetails returned an error: %v", err)
@@ -125,7 +125,7 @@ func TestStopGameServer(t *testing.T) {
 	sut := newSut()
 
 	// Call the CreateGameServer function
-	resp, err := sut.CreateGameServer(worldItem)
+	resp, err := sut.Create(worldItem)
 
 	// Check for errors
 	if err != nil {
@@ -137,7 +137,7 @@ func TestStopGameServer(t *testing.T) {
 		t.Fatal("CreateGameServer returned an empty response ID")
 	}
 
-	err = sut.StopGameServer(worldItem)
+	err = sut.Stop(worldItem)
 
 	if err != nil {
 		t.Fatalf("StopGameServer returned an error: %v", err)

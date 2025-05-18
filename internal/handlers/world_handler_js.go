@@ -20,6 +20,9 @@ func (g *gameService) gameServerIntance() ([]string, error) {
 func (g *gameService) createGameServer(w *models.WorldItem) (err error) {
 	return nil
 }
+func (g *gameService) stopAllinstances() error {
+	return nil
+}
 func toContainerName(s string) string {
 	return s
 }
