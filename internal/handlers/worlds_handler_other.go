@@ -7,7 +7,7 @@ import (
 	"github.com/ajaxe/mc-manager/internal/models"
 )
 
-func gameServerIntance() (n string, err error) {
+func gameServerIntance() (n []string, err error) {
 	n, err = gameserver.GameServerIntance()
 	return
 }
@@ -15,4 +15,7 @@ func gameServerIntance() (n string, err error) {
 func createGameServer(w *models.WorldItem) (err error) {
 	_, err = gameserver.CreateGameServer(w)
 	return
+}
+func toContainerName(s string) string {
+	return gameserver.ToContainerName(s)
 }

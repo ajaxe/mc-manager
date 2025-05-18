@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
+	"slices"
 	"sort"
 	"time"
 
@@ -34,13 +35,15 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 			return
 		}
 
-		n, err := gameServerIntance()
+		names, err := gameServerIntance()
 		if err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
 		for i := range w {
-			w[i].IsActive = w[i].Name == n
+			w[i].IsActive = slices.ContainsFunc(names, func(s string) bool {
+				return toContainerName(w[i].Name) == s
+			})
 		}
 
 		sort.Slice(w, func(i, j int) bool {
