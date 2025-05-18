@@ -14,6 +14,8 @@ func (c AppContext) LoadData(key string) {
 	switch key {
 	case StateKeyWorlds:
 		c.loadWorlds()
+	case StateKeyLaunches:
+		c.loadLaunches()
 	default: // do nothing
 	}
 }
@@ -22,9 +24,13 @@ func (c AppContext) loadWorlds() {
 	c.Async(func() {
 		l, _ := WorldsList()
 
-		for _, item := range l.Data {
-			app.Logf("load worlds %v", item)
-		}
 		c.SetState(StateKeyWorlds, l.Data)
+	})
+}
+func (c AppContext) loadLaunches() {
+	c.Async(func() {
+		l, _ := LaunchList()
+
+		c.SetState(StateKeyLaunches, l.Data)
 	})
 }

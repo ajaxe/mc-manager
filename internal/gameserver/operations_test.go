@@ -3,6 +3,7 @@ package gameserver
 import (
 	"context"
 	"fmt"
+	"slices"
 	"testing"
 
 	"github.com/ajaxe/mc-manager/internal/models"
@@ -111,10 +112,10 @@ func TestGameServerIntance(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GameServerIntance returned an error: %v", err)
 	}
-	if result == "" {
-		t.Fatal("GameServerIntance returned an empty name")
+	if len(result) == 0 {
+		t.Fatal("GameServerIntance returned an empty list of names")
 	}
-	if result != n {
+	if slices.Contains(result, n) == false {
 		t.Fatalf("GameServerIntance returned an unexpected name: got %v, want %v", result, n)
 	}
 

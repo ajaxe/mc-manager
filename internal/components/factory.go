@@ -15,3 +15,6 @@ func AppWorldAdd() *WorldAdd {
 func AppSidebarMenu() *SidebarMenu {
 	return &SidebarMenu{}
 }
+func AppLaunchItemList() *LaunchItemList {
+	return &LaunchItemList{}
+}

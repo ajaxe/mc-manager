@@ -3,6 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
@@ -51,7 +52,7 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 			return models.ErrAppGeneric(err)
 		}
 
-		if existing != "" {
+		if slices.Contains(existing, w.Name) {
 			l.logger.Info("Game server already running, cannot create new launch.")
 			return c.String(http.StatusOK, "ok")
 		}

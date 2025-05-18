@@ -12,3 +12,9 @@ func LaunchWorld(id bson.ObjectID) (err error) {
 	}, r)
 	return
 }
+func LaunchList() (l *models.LaunchItemListResult, err error) {
+	l = &models.LaunchItemListResult{}
+	err = httpGet(buildApiURL(appBaseURL(), "/launches"), l)
+
+	return
+}

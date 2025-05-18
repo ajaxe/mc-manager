@@ -1,5 +1,6 @@
 package client
 
 const (
-	StateKeyWorlds = "worlds"
+	StateKeyWorlds   = "worlds"
+	StateKeyLaunches = "launches"
 )

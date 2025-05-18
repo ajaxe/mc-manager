@@ -1,16 +1,23 @@
 package pages
 
-import "github.com/maxence-charriere/go-app/v10/pkg/app"
+import (
+	"github.com/ajaxe/mc-manager/internal/client"
+	"github.com/ajaxe/mc-manager/internal/components"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+)
 
 type WorldLaunchPage struct {
 	app.Compo
 }
 
+func (h *WorldLaunchPage) OnNav(ctx app.Context) {
+	client.NewAppContext(ctx).
+		LoadData(client.StateKeyLaunches)
+}
 func (w *WorldLaunchPage) Render() app.UI {
 	return &MainLayout{
 		Content: []app.UI{
-			app.H1().Text("World Launch Page"),
-			app.P().Text("This is the world launch page."),
+			components.AppLaunchItemList(),
 		},
 	}
 }

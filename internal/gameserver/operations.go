@@ -13,12 +13,17 @@ import (
 )
 
 func CreateGameServer(w *models.WorldItem) (resp container.CreateResponse, err error) {
-	resp, err = createGameServerInternal(w, []client.Opt{client.FromEnv})
+	cli, err := defaultDockerCli()
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+	resp, err = createGameServerInternal(w, cli)
 	return
 }
 
 // / return docker container name which is running the configured Image
-func GameServerIntance() (name string, err error) {
+func GameServerIntance() (name []string, err error) {
 	cli, err := defaultDockerCli()
 	defer cli.Close()
 	if err != nil {
@@ -37,29 +42,26 @@ func GameServerIntance() (name string, err error) {
 	}
 
 	if len(containers) == 0 {
-		return "", nil
+		return []string{}, nil
 	}
 
-	if len(containers) > 1 {
-		return "", fmt.Errorf("multiple containers found with image %s", c.GameServer.ImageName)
+	n := []string{}
+
+	for _, c := range containers {
+		n = append(n, strings.TrimPrefix(c.Names[0], "/"))
 	}
 
-	name = strings.TrimPrefix(containers[0].Names[0], "/")
-
-	return
+	return n, nil
 }
 
-func createGameServerInternal(w *models.WorldItem, opts []client.Opt) (resp container.CreateResponse, err error) {
+func createGameServerInternal(w *models.WorldItem, cli *client.Client) (resp container.CreateResponse, err error) {
 	ctx := context.Background()
-
-	cli, err := dockerCli(opts)
-	defer cli.Close()
 
 	c := defaultConfig()
 	h := defaultHostConfig()
 	n := defaultNetworkingConfig()
 
-	resp, err = cli.ContainerCreate(ctx, &c, &h, &n, nil, strings.ToLower(w.Name))
+	resp, err = cli.ContainerCreate(ctx, &c, &h, &n, nil, ToContainerName(w.Name))
 
 	err = cli.ContainerStart(ctx, resp.ID, container.StartOptions{})
 
