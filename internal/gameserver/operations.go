@@ -105,8 +105,9 @@ func (g *GameServerOperations) Details() (details []*models.GameServerDetail, er
 
 	for _, c := range containers {
 		n = append(n, &models.GameServerDetail{
-			Name:    strings.TrimPrefix(c.Names[0], "/"),
-			WorldID: c.Labels[LabelWorldId],
+			Name:        strings.TrimPrefix(c.Names[0], "/"),
+			WorldID:     c.Labels[LabelWorldId],
+			ContainerID: c.ID,
 		})
 	}
 
@@ -160,6 +161,7 @@ func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *
 		g.Logger.Infof("removing container:%s", c.ContainerID)
 		err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
 	}
+	return
 }
 
 func dockerCli(opts []client.Opt) (cli *client.Client, err error) {
