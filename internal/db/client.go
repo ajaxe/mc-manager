@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	collectionWorlds = "worlds"
+	collectionWorlds   = "worlds"
+	collectionLaunches = "launches"
 )
 const (
 	readTimeout  = 30 * time.Second

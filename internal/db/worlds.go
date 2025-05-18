@@ -27,3 +27,15 @@ func InsertWorld(w *models.WorldItem) (id bson.ObjectID, err error) {
 func DeleteWorldByID(id bson.ObjectID) error {
 	return deleteByID(id, collectionWorlds)
 }
+func WorlById(id bson.ObjectID) (w *models.WorldItem, err error) {
+	var fn dbValFunc = func() any { return &models.WorldItem{} }
+
+	r, err := readByID(id, fn, collectionWorlds)
+	if err != nil {
+		return nil, err
+	}
+
+	w = r.(*models.WorldItem)
+
+	return
+}

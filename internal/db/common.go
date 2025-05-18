@@ -69,3 +69,31 @@ func insertRecord(u any, collection string) (err error) {
 
 	return
 }
+
+func readByID(id bson.ObjectID, v dbValFunc, collection string) (d any, err error) {
+	c, err := NewClient()
+	if err != nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), readTimeout)
+	defer cancel()
+
+	f := bson.D{{"_id", id}}
+
+	res := c.Database(clientInstance.DbName).
+		Collection(collection).
+		FindOne(ctx, f)
+
+	if res.Err() != nil {
+		return nil, res.Err()
+	}
+
+	resp := v()
+	err = res.Decode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
