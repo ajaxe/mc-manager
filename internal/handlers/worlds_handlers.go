@@ -49,6 +49,9 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 
 		return c.JSON(http.StatusOK, &models.WorldItemListResult{
 			Data: w,
+			ApiResult: models.ApiResult{
+				Success: true,
+			},
 		})
 	}
 }

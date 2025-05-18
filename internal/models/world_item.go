@@ -9,6 +9,7 @@ type WorldItem struct {
 	WorldSeed   string        `bson:"world_seed" json:"worldSeed"`
 	GameMode    string        `bson:"game_mode" json:"gameMode"`
 	CreateDate  string        `bson:"create_date" json:"createDate"`
+	IsActive    bool          `bson:"is_active" json:"isActive"`
 }
 
 type WorldItemListResult struct {
