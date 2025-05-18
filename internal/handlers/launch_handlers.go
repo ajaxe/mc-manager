@@ -75,7 +75,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 
 	gameService := NewGameService(l.logger)
 
-	existing, err := gameService.gameServerIntance()
+	existing, err := gameService.serverIntance()
 	if err != nil {
 		err = models.ErrAppGeneric(err)
 		return
@@ -84,6 +84,12 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 	if l.checkLauchItemName(existing, w.Name) {
 		l.logger.Info("Game server already running, cannot create new launch.")
 		err = models.ErrAppBadID(fmt.Errorf("Game server already running: %s", w.Name))
+		return
+	}
+
+	err = gameService.stopAllInstances()
+	if err != nil {
+		err = models.ErrAppGeneric(err)
 		return
 	}
 

@@ -35,7 +35,7 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 			return
 		}
 
-		names, err := NewGameService(w.logger).gameServerIntance()
+		names, err := NewGameService(w.logger).serverIntance()
 		if err != nil {
 			return models.ErrAppGeneric(err)
 		}

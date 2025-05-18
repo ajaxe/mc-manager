@@ -4,6 +4,6 @@ import "github.com/ajaxe/mc-manager/internal/models"
 
 type GameService interface {
 	createGameServer(w *models.WorldItem) error
-	gameServerIntance() ([]string, error)
-	stopAllinstances() error
+	serverIntance() ([]string, error)
+	stopAllInstances() error
 }

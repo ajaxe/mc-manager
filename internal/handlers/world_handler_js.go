@@ -14,13 +14,13 @@ func NewGameService(logger echo.Logger) GameService {
 	return &gameService{}
 }
 
-func (g *gameService) gameServerIntance() ([]string, error) {
+func (g *gameService) serverIntance() ([]string, error) {
 	return []string{}, nil
 }
 func (g *gameService) createGameServer(w *models.WorldItem) (err error) {
 	return nil
 }
-func (g *gameService) stopAllinstances() error {
+func (g *gameService) stopAllInstances() error {
 	return nil
 }
 func toContainerName(s string) string {

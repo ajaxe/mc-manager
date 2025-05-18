@@ -1,56 +1,76 @@
 package gameserver
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/ajaxe/mc-manager/internal/config"
+	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
+	"github.com/labstack/echo/v4"
 )
 
 const LabelImageName = "mc.manager.image.name"
 const LabelWordId = "mc.manager.world.id"
+const EnvVarGamemode = "MC_GAMEMODE"
+const EnvVarLevelName = "MC_LEVEL_NAME"
+const EnvVarLevelSeed = "MC_LEVEL_SEED"
 
-func defaultConfig(worldId string) container.Config {
-	c := config.LoadAppConfig()
+type ServiceConfig struct {
+	Logger echo.Logger
+	Config config.AppConfig
+}
 
-	replacer := strings.NewReplacer("${HOSTING_DIR}", c.GameServer.HostingDir)
+func (s *ServiceConfig) defaultConfig(w *models.WorldItem) container.Config {
+	replacer := strings.NewReplacer("${HOSTING_DIR}", s.Config.GameServer.HostingDir)
 
 	vols := make(map[string]struct{})
-	for _, v := range c.GameServer.Volumes {
+	for _, v := range s.Config.GameServer.Volumes {
 		vols[replacer.Replace(v)] = struct{}{}
 	}
 
 	labels := make(map[string]string)
-	for _, l := range c.GameServer.Labels {
+	for _, l := range s.Config.GameServer.Labels {
 		splits := strings.SplitN(l, "=", 2)
 		labels[splits[0]] = splits[1]
 	}
-	labels[LabelImageName] = c.GameServer.ImageName
-	labels[LabelWordId] = worldId
+	labels[LabelImageName] = s.Config.GameServer.ImageName
+	labels[LabelWordId] = w.ID.Hex()
+
+	env := []string{}
+	for _, v := range s.Config.GameServer.EnvVars {
+		if strings.HasPrefix(v, EnvVarGamemode) {
+			env = append(env, fmt.Sprintf("%s=%s", EnvVarGamemode, w.GameMode))
+		} else if strings.HasPrefix(v, EnvVarLevelName) {
+			env = append(env, fmt.Sprintf("%s=%s", EnvVarLevelName, w.Name))
+		} else if strings.HasPrefix(v, EnvVarLevelSeed) {
+			env = append(env, fmt.Sprintf("%s=%s", EnvVarLevelSeed, w.WorldSeed))
+		} else {
+			env = append(env, v)
+		}
+	}
 
 	return container.Config{
-		Image:   c.GameServer.ImageName,
+		Image:   s.Config.GameServer.ImageName,
 		Volumes: vols,
-		Env:     c.GameServer.EnvVars,
+		Env:     env,
 		Labels:  labels,
 	}
 }
 
-func defaultHostConfig() container.HostConfig {
-	c := config.LoadAppConfig()
+func (s *ServiceConfig) defaultHostConfig() container.HostConfig {
 	return container.HostConfig{
 		LogConfig: container.LogConfig{
-			Type:   c.GameServer.Logging.Driver,
-			Config: c.GameServer.Logging.Options,
+			Type:   s.Config.GameServer.Logging.Driver,
+			Config: s.Config.GameServer.Logging.Options,
 		},
 	}
 }
 
-func defaultNetworkingConfig() network.NetworkingConfig {
-	c := config.LoadAppConfig()
+func (s *ServiceConfig) defaultNetworkingConfig() network.NetworkingConfig {
 	networks := make(map[string]*network.EndpointSettings)
-	for _, n := range c.GameServer.Networks {
+	for _, n := range s.Config.GameServer.Networks {
 		networks[n] = &network.EndpointSettings{}
 	}
 	return network.NetworkingConfig{

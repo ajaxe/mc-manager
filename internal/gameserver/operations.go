@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
@@ -15,6 +14,7 @@ import (
 
 type GameServerOperations struct {
 	Logger echo.Logger
+	Config *ServiceConfig
 }
 
 // Create creates a new game server container bades on the world item name.
@@ -24,7 +24,7 @@ func (g *GameServerOperations) Create(w *models.WorldItem) (resp container.Creat
 		return
 	}
 	defer cli.Close()
-	resp, err = createGameServerInternal(w, cli)
+	resp, err = g.createGameServerInternal(w, cli)
 	return
 }
 
@@ -67,6 +67,7 @@ func (g *GameServerOperations) Stop(w *models.WorldItem) (err error) {
 	return
 }
 
+// StopAll stops & removes all containers running the configured Image with World ID label.
 func (g *GameServerOperations) StopAll() (err error) {
 	containers, err := g.Details()
 
@@ -93,7 +94,7 @@ func (g *GameServerOperations) Details() (details []*models.GameServerDetail, er
 	}
 	defer cli.Close()
 
-	containers, err := listContainers(cli)
+	containers, err := g.listContainers(cli)
 	if err != nil {
 		return
 	}
@@ -114,9 +115,8 @@ func (g *GameServerOperations) Details() (details []*models.GameServerDetail, er
 	return n, nil
 }
 
-func listContainers(cli *client.Client) (containers []container.Summary, err error) {
-	c := config.LoadAppConfig()
-
+func (g *GameServerOperations) listContainers(cli *client.Client) (containers []container.Summary, err error) {
+	c := g.Config.Config
 	containers, err = cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", fmt.Sprintf("%s=%s", LabelImageName, c.GameServer.ImageName))),
@@ -125,12 +125,12 @@ func listContainers(cli *client.Client) (containers []container.Summary, err err
 	return
 }
 
-func createGameServerInternal(w *models.WorldItem, cli *client.Client) (resp container.CreateResponse, err error) {
+func (g *GameServerOperations) createGameServerInternal(w *models.WorldItem, cli *client.Client) (resp container.CreateResponse, err error) {
 	ctx := context.Background()
 
-	c := defaultConfig(w.ID.Hex())
-	h := defaultHostConfig()
-	n := defaultNetworkingConfig()
+	c := g.Config.defaultConfig(w)
+	h := g.Config.defaultHostConfig()
+	n := g.Config.defaultNetworkingConfig()
 
 	resp, err = cli.ContainerCreate(ctx, &c, &h, &n, nil, ToContainerName(w.Name))
 

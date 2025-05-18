@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -173,8 +174,13 @@ func cleanupContainer(resp container.CreateResponse, t *testing.T) {
 }
 
 func newSut() *GameServerOperations {
+	l := log.New("echo_test")
 	return &GameServerOperations{
-		Logger: log.New("echo_test"),
+		Logger: l,
+		Config: &ServiceConfig{
+			Logger: l,
+			Config: config.LoadAppConfig(),
+		},
 	}
 }
 func newWorldName(prefix string) string {
