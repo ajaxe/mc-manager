@@ -3,8 +3,8 @@ package models
 import "go.mongodb.org/mongo-driver/v2/bson"
 
 type LaunchItem struct {
-	LaunchID   bson.ObjectID `bson:"_id" json:"launchId"`
 	ID         bson.ObjectID `bson:"_id" json:"id"`
+	WorldID    bson.ObjectID `bson:"world_id" json:"worldId"`
 	Name       string        `json:"name"`
 	WorldSeed  string        `bson:"world_seed" json:"worldSeed"`
 	GameMode   string        `bson:"game_mode" json:"gameMode"`
@@ -18,4 +18,17 @@ type LaunchItemListResult struct {
 }
 type CreateLaunchItem struct {
 	WorldItemID bson.ObjectID `json:"worldItemId"`
+}
+
+// ToLaunchItem creates a new LaunchItem from a WorldItem
+func ToLaunchItem(w *WorldItem, launchDt string, status string) *LaunchItem {
+	return &LaunchItem{
+		WorldID:    w.ID,
+		Name:       w.Name,
+		WorldSeed:  w.WorldSeed,
+		GameMode:   w.GameMode,
+		LaunchDate: launchDt,
+		Status:     status,
+		Message:    "",
+	}
 }

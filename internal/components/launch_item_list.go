@@ -15,9 +15,9 @@ type LaunchItemList struct {
 
 func (l *LaunchItemList) OnMount(ctx app.Context) {
 	fmt.Printf("component mounted: %s\n", app.Window().URL())
-	ctx.ObserveState(client.StateKeyWorlds, &l.items)
+	ctx.ObserveState(client.StateKeyLaunches, &l.items)
 }
-func (l *LaunchItemList) Render() app.UI{
+func (l *LaunchItemList) Render() app.UI {
 	return app.Div().
 		Class("row g-4").
 		Body(

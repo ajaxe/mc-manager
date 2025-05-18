@@ -17,15 +17,23 @@ func (l *LaunchItemCard) Render() app.UI {
 			app.Div().
 				Class("card-body").
 				Body(
-					app.H3().
-						Class("card-title").
-						Text(l.Item.Name),
-					app.P().
-						Class("card-text").
-						Text(l.Item.LaunchDate),
-					app.Button().
-						Class("btn btn-primary").
-						Text("Launch"),
+					app.Div().Class("row").Body(
+						app.Div().
+							Class("col").
+							Text(l.Item.Name),
+						app.Div().
+							Class("col").
+							Text(l.Item.GameMode),
+						app.Div().
+							Class("col-3").
+							Text(l.Item.WorldSeed),
+						app.Div().
+							Class("col").
+							Text(l.Item.LaunchDate),
+						app.Div().
+							Class("col").
+							Text(l.Item.Status),
+					),
 				),
 		)
 }

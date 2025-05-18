@@ -3,7 +3,7 @@ package handlers
 import (
 	"fmt"
 	"net/http"
-	"slices"
+	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
@@ -42,29 +42,11 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
 		}
 
-		w, err := db.WorlById(u.WorldItemID)
-		if err != nil {
-			return models.ErrAppGeneric(fmt.Errorf("world not found: %v", err))
-		}
+		id, err := l.createLaunch(u)
 
-		existing, err := gameServerIntance()
-		if err != nil {
-			return models.ErrAppGeneric(err)
-		}
+		l.logger.Info("Created new launch item: %s", id.Hex())
 
-		if slices.Contains(existing, w.Name) {
-			l.logger.Info("Game server already running, cannot create new launch.")
-			return c.String(http.StatusOK, "ok")
-		}
-
-		if err := createGameServer(w); err != nil {
-			l.logger.Error("Failed to create game server: %v", err)
-			return models.ErrAppGeneric(err)
-		}
-
-		return c.JSON(http.StatusOK, &models.ApiResult{
-			Success: true,
-		})
+		return c.JSON(http.StatusOK, models.NewApiIDResult(id))
 	}
 }
 
@@ -82,4 +64,56 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 			},
 		})
 	}
+}
+
+func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.ObjectID, err error) {
+	w, err := db.WorlById(u.WorldItemID)
+	if err != nil {
+		err = models.ErrAppGeneric(fmt.Errorf("world not found: %v", err))
+		return
+	}
+
+	existing, err := gameServerIntance()
+	if err != nil {
+		err = models.ErrAppGeneric(err)
+		return
+	}
+
+	if l.checkLauchItemName(existing, w.Name) {
+		l.logger.Info("Game server already running, cannot create new launch.")
+		err = models.ErrAppBadID(fmt.Errorf("Game server already running: %s", w.Name))
+		return
+	}
+
+	if err = createGameServer(w); err != nil {
+		l.logger.Error("Failed to create game server: %v", err)
+
+		_, e := db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))
+
+		l.logger.Error("Failed to insert launch item: %v", e)
+
+		err = models.ErrAppGeneric(err)
+		return
+	}
+
+	id, err = db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "success"))
+
+	if err != nil {
+		err = models.ErrAppGeneric(err)
+		//TODO: remove started container
+		return
+	}
+
+	return
+}
+
+// checks if the "world name" is already in the list of running game servers "names".
+// returns true if the world name is found in the list
+func (l *launchHandler) checkLauchItemName(names []string, worlName string) bool {
+	for _, name := range names {
+		if name == toContainerName(worlName) {
+			return true
+		}
+	}
+	return false
 }
