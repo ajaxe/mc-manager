@@ -30,28 +30,28 @@ type worldsHandler struct {
 
 func (w *worldsHandler) Worlds() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
-		w, err := db.Worlds()
+		d, err := db.Worlds()
 		if err != nil {
 			return
 		}
 
-		names, err := gameServerIntance()
+		names, err := NewGameService(w.logger).gameServerIntance()
 		if err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
-		for i := range w {
-			w[i].IsActive = slices.ContainsFunc(names, func(s string) bool {
-				return toContainerName(w[i].Name) == s
+		for i := range d {
+			d[i].IsActive = slices.ContainsFunc(names, func(s string) bool {
+				return toContainerName(d[i].Name) == s
 			})
 		}
 
-		sort.Slice(w, func(i, j int) bool {
-			return w[i].IsActive == true && w[j].IsActive == false
+		sort.Slice(d, func(i, j int) bool {
+			return d[i].IsActive == true && d[j].IsActive == false
 		})
 
 		return c.JSON(http.StatusOK, &models.WorldItemListResult{
-			Data: w,
+			Data: d,
 			ApiResult: models.ApiResult{
 				Success: true,
 			},

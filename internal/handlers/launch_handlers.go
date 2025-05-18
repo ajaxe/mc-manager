@@ -73,7 +73,9 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 		return
 	}
 
-	existing, err := gameServerIntance()
+	gameService := NewGameService(l.logger)
+
+	existing, err := gameService.gameServerIntance()
 	if err != nil {
 		err = models.ErrAppGeneric(err)
 		return
@@ -85,7 +87,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 		return
 	}
 
-	if err = createGameServer(w); err != nil {
+	if err = gameService.createGameServer(w); err != nil {
 		l.logger.Error("Failed to create game server: %v", err)
 
 		_, e := db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))

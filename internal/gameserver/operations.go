@@ -10,9 +10,15 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/labstack/echo/v4"
 )
 
-func CreateGameServer(w *models.WorldItem) (resp container.CreateResponse, err error) {
+type GameServerOperations struct {
+	Logger echo.Logger
+}
+
+// CreateGameServer creates a new game server container bades on the world item name.
+func (g *GameServerOperations) CreateGameServer(w *models.WorldItem) (resp container.CreateResponse, err error) {
 	cli, err := defaultDockerCli()
 	if err != nil {
 		return
@@ -22,21 +28,15 @@ func CreateGameServer(w *models.WorldItem) (resp container.CreateResponse, err e
 	return
 }
 
-// / return docker container name which is running the configured Image
-func GameServerIntance() (name []string, err error) {
+// GameServerIntance returns List of docker container names which is running the configured Image
+func (g *GameServerOperations) GameServerIntance() (name []string, err error) {
 	cli, err := defaultDockerCli()
 	defer cli.Close()
 	if err != nil {
 		return
 	}
 
-	c := config.LoadAppConfig()
-
-	containers, err := cli.ContainerList(context.Background(), container.ListOptions{
-		Filters: filters.NewArgs(
-			filters.Arg("label", fmt.Sprintf("%s=%s", LabelImageName, c.GameServer.ImageName))),
-	})
-
+	containers, err := listContainers(cli)
 	if err != nil {
 		return
 	}
@@ -54,10 +54,49 @@ func GameServerIntance() (name []string, err error) {
 	return n, nil
 }
 
+func (g *GameServerOperations) StopGameServer(w *models.WorldItem) (err error) {
+	cli, err := defaultDockerCli()
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+
+	name := ToContainerName(w.Name)
+
+	containers, err := listContainers(cli)
+	if err != nil {
+		return
+	}
+
+	if len(containers) == 0 {
+		return
+	}
+
+	for _, c := range containers {
+		if strings.TrimPrefix(c.Names[0], "/") == name {
+			err = cli.ContainerStop(context.Background(), c.ID, container.StopOptions{})
+			err = cli.ContainerRemove(context.Background(), c.ID, container.RemoveOptions{Force: true})
+		}
+	}
+
+	return
+}
+
+func listContainers(cli *client.Client) (containers []container.Summary, err error) {
+	c := config.LoadAppConfig()
+
+	containers, err = cli.ContainerList(context.Background(), container.ListOptions{
+		Filters: filters.NewArgs(
+			filters.Arg("label", fmt.Sprintf("%s=%s", LabelImageName, c.GameServer.ImageName))),
+	})
+
+	return
+}
+
 func createGameServerInternal(w *models.WorldItem, cli *client.Client) (resp container.CreateResponse, err error) {
 	ctx := context.Background()
 
-	c := defaultConfig()
+	c := defaultConfig(w.ID.Hex())
 	h := defaultHostConfig()
 	n := defaultNetworkingConfig()
 

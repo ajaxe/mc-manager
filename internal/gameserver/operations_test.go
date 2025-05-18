@@ -9,6 +9,7 @@ import (
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/labstack/gommon/log"
 )
 
 /* func TestCreateGameServerInternal(t *testing.T) {
@@ -72,8 +73,10 @@ func TestCreateGameServer(t *testing.T) {
 		Name: "test-world-2",
 	}
 
+	sut := newSut()
+
 	// Call the CreateGameServer function
-	resp, err := CreateGameServer(worldItem)
+	resp, err := sut.CreateGameServer(worldItem)
 
 	// Check for errors
 	if err != nil {
@@ -94,8 +97,10 @@ func TestGameServerIntance(t *testing.T) {
 		Name: n,
 	}
 
+	sut := newSut()
+
 	// Call the CreateGameServer function
-	resp, err := CreateGameServer(worldItem)
+	resp, err := sut.CreateGameServer(worldItem)
 
 	// Check for errors
 	if err != nil {
@@ -107,7 +112,7 @@ func TestGameServerIntance(t *testing.T) {
 		t.Fatal("CreateGameServer returned an empty response ID")
 	}
 
-	result, err := GameServerIntance()
+	result, err := sut.GameServerIntance()
 
 	if err != nil {
 		t.Fatalf("GameServerIntance returned an error: %v", err)
@@ -115,7 +120,7 @@ func TestGameServerIntance(t *testing.T) {
 	if len(result) == 0 {
 		t.Fatal("GameServerIntance returned an empty list of names")
 	}
-	if slices.Contains(result, n) == false {
+	if slices.Contains(result, ToContainerName(n)) == false {
 		t.Fatalf("GameServerIntance returned an unexpected name: got %v, want %v", result, n)
 	}
 
@@ -145,5 +150,11 @@ func cleanupContainer(resp container.CreateResponse, t *testing.T) {
 		t.Logf("%v\n", fmt.Errorf("error removing container: ID=%v: %v", resp.ID, e))
 	} else {
 		t.Logf("Container removed: ID=%v\n", resp.ID)
+	}
+}
+
+func newSut() *GameServerOperations {
+	return &GameServerOperations{
+		Logger: log.New("echo_test"),
 	}
 }

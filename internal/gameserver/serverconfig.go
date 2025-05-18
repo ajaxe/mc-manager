@@ -9,8 +9,9 @@ import (
 )
 
 const LabelImageName = "mc.manager.image.name"
+const LabelWordId = "mc.manager.world.id"
 
-func defaultConfig() container.Config {
+func defaultConfig(worldId string) container.Config {
 	c := config.LoadAppConfig()
 
 	replacer := strings.NewReplacer("${HOSTING_DIR}", c.GameServer.HostingDir)
@@ -26,6 +27,7 @@ func defaultConfig() container.Config {
 		labels[splits[0]] = splits[1]
 	}
 	labels[LabelImageName] = c.GameServer.ImageName
+	labels[LabelWordId] = worldId
 
 	return container.Config{
 		Image:   c.GameServer.ImageName,

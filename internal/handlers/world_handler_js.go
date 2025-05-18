@@ -2,12 +2,22 @@
 
 package handlers
 
-import "github.com/ajaxe/mc-manager/internal/models"
+import (
+	"github.com/ajaxe/mc-manager/internal/models"
+	"github.com/labstack/echo/v4"
+)
 
-func gameServerIntance() ([]string, error) {
+type gameService struct {
+}
+
+func NewGameService(logger echo.Logger) GameService {
+	return &gameService{}
+}
+
+func (g *gameService) gameServerIntance() ([]string, error) {
 	return []string{}, nil
 }
-func createGameServer(w *models.WorldItem) (err error) {
+func (g *gameService) createGameServer(w *models.WorldItem) (err error) {
 	return nil
 }
 func toContainerName(s string) string {
