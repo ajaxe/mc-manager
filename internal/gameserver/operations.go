@@ -59,8 +59,7 @@ func (g *GameServerOperations) Stop(w *models.WorldItem) (err error) {
 
 	for _, c := range containers {
 		if strings.TrimPrefix(c.WorldID, "/") == name {
-			err = cli.ContainerStop(context.Background(), c.ContainerID, container.StopOptions{})
-			err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
+			g.removeContainer(c, cli)
 		}
 	}
 
@@ -79,8 +78,7 @@ func (g *GameServerOperations) StopAll() (err error) {
 
 	for _, c := range containers {
 		if c.WorldID != "" {
-			err = cli.ContainerStop(context.Background(), c.ContainerID, container.StopOptions{})
-			err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
+			g.removeContainer(c, cli)
 		}
 	}
 
@@ -108,7 +106,7 @@ func (g *GameServerOperations) Details() (details []*models.GameServerDetail, er
 	for _, c := range containers {
 		n = append(n, &models.GameServerDetail{
 			Name:    strings.TrimPrefix(c.Names[0], "/"),
-			WorldID: c.Labels[LabelWordId],
+			WorldID: c.Labels[LabelWorldId],
 		})
 	}
 
@@ -117,9 +115,13 @@ func (g *GameServerOperations) Details() (details []*models.GameServerDetail, er
 
 func (g *GameServerOperations) listContainers(cli *client.Client) (containers []container.Summary, err error) {
 	c := g.Config.Config
+	l := fmt.Sprintf("%s=%s", LabelImageName, c.GameServer.ImageName)
+
+	g.Logger.Infof("listing container with label: %v", l)
+
 	containers, err = cli.ContainerList(context.Background(), container.ListOptions{
 		Filters: filters.NewArgs(
-			filters.Arg("label", fmt.Sprintf("%s=%s", LabelImageName, c.GameServer.ImageName))),
+			filters.Arg("label", l)),
 	})
 
 	return
@@ -132,11 +134,32 @@ func (g *GameServerOperations) createGameServerInternal(w *models.WorldItem, cli
 	h := g.Config.defaultHostConfig()
 	n := g.Config.defaultNetworkingConfig()
 
-	resp, err = cli.ContainerCreate(ctx, &c, &h, &n, nil, ToContainerName(w.Name))
+	cname := ToContainerName(w.Name)
+
+	resp, err = cli.ContainerCreate(ctx, &c, &h, &n, nil, cname)
+	if err != nil {
+		return
+	}
 
 	err = cli.ContainerStart(ctx, resp.ID, container.StartOptions{})
 
+	if err == nil {
+		g.Logger.Infof("container started, name:%s id:%s", cname, resp.ID)
+	}
+
 	return
+}
+
+func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *client.Client) (err error) {
+	g.Logger.Infof("stopping container:%s", c.ContainerID)
+	err = cli.ContainerStop(context.Background(), c.ContainerID, container.StopOptions{})
+
+	if err != nil {
+		return err
+	} else {
+		g.Logger.Infof("removing container:%s", c.ContainerID)
+		err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
+	}
 }
 
 func dockerCli(opts []client.Opt) (cli *client.Client, err error) {

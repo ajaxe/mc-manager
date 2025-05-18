@@ -12,7 +12,7 @@ import (
 )
 
 const LabelImageName = "mc.manager.image.name"
-const LabelWordId = "mc.manager.world.id"
+const LabelWorldId = "mc.manager.world.id"
 const EnvVarGamemode = "MC_GAMEMODE"
 const EnvVarLevelName = "MC_LEVEL_NAME"
 const EnvVarLevelSeed = "MC_LEVEL_SEED"
@@ -36,7 +36,7 @@ func (s *ServiceConfig) defaultConfig(w *models.WorldItem) container.Config {
 		labels[splits[0]] = splits[1]
 	}
 	labels[LabelImageName] = s.Config.GameServer.ImageName
-	labels[LabelWordId] = w.ID.Hex()
+	labels[LabelWorldId] = w.ID.Hex()
 
 	env := []string{}
 	for _, v := range s.Config.GameServer.EnvVars {
