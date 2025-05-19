@@ -8,7 +8,10 @@ import (
 func Worlds() (d []*models.WorldItem, err error) {
 	var fn dbValFunc = func() any { return &models.WorldItem{} }
 
-	r, err := readAllCollection(fn, collectionWorlds)
+	r, err := readAllCollection(readOptions{
+		dbVal:      fn,
+		collection: collectionWorlds,
+	})
 
 	d = make([]*models.WorldItem, len(r))
 	for i, v := range r {

@@ -2,13 +2,34 @@ package db
 
 import (
 	"context"
+	"fmt"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
 type dbValFunc func() any
 
-func readAllCollection(v dbValFunc, collection string) (d []any, err error) {
+type readOptions struct {
+	filter     *bson.D
+	dbVal      dbValFunc
+	opts       *options.FindOptionsBuilder
+	collection string
+}
+
+func readAllCollection(ro readOptions) (d []any, err error) {
+	if ro.filter == nil {
+		ro.filter = &bson.D{}
+	}
+	if ro.dbVal == nil {
+		err = fmt.Errorf("'dbVal' is required")
+		return
+	}
+	if ro.collection == "" {
+		err = fmt.Errorf("'collection' name is required")
+		return
+	}
+
 	c, err := NewClient()
 	if err != nil {
 		return
@@ -18,8 +39,8 @@ func readAllCollection(v dbValFunc, collection string) (d []any, err error) {
 	defer cancel()
 
 	cur, err := c.Database(clientInstance.DbName).
-		Collection(collection).
-		Find(ctx, bson.D{})
+		Collection(ro.collection).
+		Find(ctx, ro.filter, ro.opts)
 
 	if err != nil {
 		return
@@ -27,7 +48,7 @@ func readAllCollection(v dbValFunc, collection string) (d []any, err error) {
 	defer cur.Close(ctx)
 
 	for cur.Next(ctx) {
-		r := v()
+		r := ro.dbVal()
 		if err = cur.Decode(r); err != nil {
 			return
 		}

@@ -19,15 +19,13 @@ func (l *LaunchItemList) OnMount(ctx app.Context) {
 }
 func (l *LaunchItemList) Render() app.UI {
 	return app.Div().
-		Class("row g-4").
+		//Class("row g-4").
 		Body(
 			app.Range(l.items).
 				Slice(func(i int) app.UI {
-					return app.Div().Class("col").Body(
-						&LaunchItemCard{
-							Item: l.items[i],
-						},
-					)
+					return &LaunchItemCard{
+						Item: l.items[i],
+					}
 				}),
 		)
 }
