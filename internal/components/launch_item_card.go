@@ -21,27 +21,31 @@ func (l *LaunchItemCard) Render() app.UI {
 				Class("card-body").
 				Body(
 					app.Div().Class("row").Body(
-						app.Div().
-							Class("col").
-							Text(l.Item.Name),
-						app.Div().
-							Class("col text-capitalize").
-							Text(l.Item.GameMode),
-						app.Div().
-							Class("col-3").
-							Text(l.Item.WorldSeed),
-						app.Div().
-							Class("col").
-							Text(l.dtDisplay()),
-						app.Div().
-							Class("col").
-							Body(l.statusIcon()),
+						l.displayField(l.asText(l.Item.Name), "col-sm-12 col-md", "World Name:"),
+						l.displayField(l.asText(l.Item.GameMode), "col-sm-12 col-md text-capitalize", "Gamemode:"),
+						l.displayField(l.asText(l.Item.WorldSeed), "col-sm-12 col-md-3", "World Seed:"),
+						l.displayField(l.asText(l.dtDisplay()), "col-sm-12 col-md", "Launch Date:"),
+						l.displayField(l.statusIcon(), "col-sm-12 col-md", "Status:"),
 					),
 				),
 		)
 }
+func (l *LaunchItemCard) asText(s string) app.UI {
+	return app.Text(s)
+}
+func (l *LaunchItemCard) displayField(el app.UI, css, lbl string) app.UI {
+	return app.Div().
+		Class(css + " pb-2 pb-md-0").
+		Body(
+			app.Label().
+				Class("d-sm-inline-block d-md-none pe-3 fw-medium").
+				Style("min-width", "110px").
+				Text(lbl),
+			el,
+		)
+
+}
 func (l *LaunchItemCard) statusIcon() app.UI {
-	//l.Item.Status
 	ico := "bi-check-circle-fill"
 	co := "text-success"
 
@@ -49,8 +53,14 @@ func (l *LaunchItemCard) statusIcon() app.UI {
 		ico = "bi-exclamation-octagon-fill"
 		co = "text-danger"
 	}
-	return app.I().
-		Class(fmt.Sprintf("bi %s %s", ico, co))
+	return app.Span().
+		Body(
+			app.I().
+				Class(fmt.Sprintf("bi %s %s", ico, co)),
+			app.Span().
+				Class("ms-2 text-capitalize").
+				Text(l.Item.Status),
+		)
 }
 func (l *LaunchItemCard) dtDisplay() string {
 	dt := l.Item.LaunchDate
