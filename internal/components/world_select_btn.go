@@ -17,6 +17,6 @@ func (w *WorldSelectBtn) Render() app.UI {
 		Body(
 			app.I().
 				Style("font-size", "1.8rem").
-				Class("ms-2 bi bi-check2-square " + c),
+				Class("bi bi-check2-square " + c),
 		)
 }

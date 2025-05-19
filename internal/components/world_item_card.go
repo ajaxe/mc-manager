@@ -12,6 +12,8 @@ type WorldItemCard struct {
 	app.Compo
 	Item         *models.WorldItem
 	intiGamemode string
+	disabled     bool
+	loadMessage  string
 }
 
 func (w *WorldItemCard) Render() app.UI {
@@ -21,60 +23,47 @@ func (w *WorldItemCard) Render() app.UI {
 	}
 	return app.Div().
 		ID(w.Item.ID.Hex()).
-		Class("card mt-2 bg-dark-subtle " + b).Body(
-		app.Div().Class("card-body").Body(
-			app.H5().Class("card-title").
-				Body(
-					app.Text(w.Item.Name+"  "),
-					&WorldSelectBtn{
-						active: w.Item.IsActive,
-					},
+		Class("card mt-2 bg-dark-subtle "+b).
+		Body(
+			&CardSpinner{
+				Show:    w.disabled,
+				Message: w.loadMessage,
+			},
+			app.Div().Class("card-body").Body(
+				app.H5().Class("card-title").
+					Body(
+						app.Text(w.Item.Name+"  "),
+						&WorldSelectBtn{
+							active: w.Item.IsActive,
+						},
+					),
+				app.H6().Class("card-subtitle mb-2 text-body-secondary").Text(w.Item.Description),
+				app.P().Class("card-text").Body(
+					app.Label().For("ws-"+w.Item.ID.Hex()).Text("World Seed: "),
+					app.Span().ID("ws-"+w.Item.ID.Hex()).Class("ms-3").Text(w.Item.WorldSeed),
 				),
-			app.H6().Class("card-subtitle mb-2 text-body-secondary").Text(w.Item.Description),
-			app.P().Class("card-text").Body(
-				app.Label().For("ws-"+w.Item.ID.Hex()).Text("World Seed: "),
-				app.Span().ID("ws-"+w.Item.ID.Hex()).Class("ms-3").Text(w.Item.WorldSeed),
+				app.P().Class("card-text").
+					Body(
+						w.modeSelector(),
+					),
+
+				w.launchWorldBtn(),
+
+				app.If(!w.Item.IsActive, func() app.UI {
+					return app.Button().Class("btn btn-link").Disabled(w.disabled).Text("Delete world").
+						OnClick(func(ctx app.Context, e app.Event) {
+							e.PreventDefault()
+							ctx.Async(func() {
+								client.WorldDelete(w.Item.ID.Hex())
+								ctx.Dispatch(func(ctx app.Context) {
+									client.NewAppContext(ctx).
+										LoadData(client.StateKeyWorlds)
+								})
+							})
+						})
+				}),
 			),
-			app.P().Class("card-text").
-				Body(
-					w.modeSelector(),
-				),
-			app.If(w.Item.IsActive, func() app.UI {
-				return app.Button().Class("btn btn-link").Text("Change mode").
-					OnClick(func(ctx app.Context, e app.Event) {
-						e.PreventDefault()
-						fmt.Println("Change mode: ", w.Item.GameMode)
-					})
-			}),
-			app.If(!w.Item.IsActive, func() app.UI {
-				return app.Button().Class("btn btn-link").Text("Launch world").
-					OnClick(func(ctx app.Context, e app.Event) {
-						e.PreventDefault()
-						ctx.Async(func() {
-							_ = client.LaunchWorld(w.Item.ID)
-							// TODO: erorr handling
-							ctx.Dispatch(func(ctx app.Context) {
-								client.NewAppContext(ctx).
-									LoadData(client.StateKeyWorlds)
-							})
-						})
-					})
-			}),
-			app.If(!w.Item.IsActive, func() app.UI {
-				return app.Button().Class("btn btn-link").Text("Delete world").
-					OnClick(func(ctx app.Context, e app.Event) {
-						e.PreventDefault()
-						ctx.Async(func() {
-							client.WorldDelete(w.Item.ID.Hex())
-							ctx.Dispatch(func(ctx app.Context) {
-								client.NewAppContext(ctx).
-									LoadData(client.StateKeyWorlds)
-							})
-						})
-					})
-			}),
-		),
-	)
+		)
 }
 func (w *WorldItemCard) modeSelector() app.UI {
 	w.intiGamemode = w.Item.GameMode
@@ -85,8 +74,9 @@ func (w *WorldItemCard) modeSelector() app.UI {
 			Label: "World gamemode",
 		},
 		&FormSelect{
-			ID:    id,
-			Label: "World gamemode",
+			ID:       id,
+			Label:    "World gamemode",
+			Disabled: w.disabled,
 			SelectItems: map[string]string{
 				"survival":  "Survival",
 				"creative":  "Creative",
@@ -94,6 +84,46 @@ func (w *WorldItemCard) modeSelector() app.UI {
 			},
 			Value:  w.Item.GameMode,
 			BindTo: &w.Item.GameMode,
+			OnChange: func(ctx app.Context, e app.Event) {
+				w.Item.GameMode = ctx.JSSrc().Get("value").String()
+				w.disabled = true
+				w.loadMessage = "Updating game mode."
+				//ctx.NewActionWithValue(client.ActionShowCardSpinners, true)
+				ctx.Async(func() {
+					_, _ = client.WorldUpdate(w.Item)
+
+					ctx.Dispatch(func(ctx app.Context) {
+						w.disabled = false
+						w.loadMessage = ""
+					})
+				})
+			},
 		},
 	)
+}
+func (w *WorldItemCard) launchWorldBtn() app.UI {
+	txt := "Launch world"
+	m := "Launching world."
+	if w.Item.IsActive {
+		txt = "Change game mode"
+		m = "Re-launching world in new Game-mode"
+	}
+	return app.Button().Class("btn btn-link").Disabled(w.disabled).Text(txt).
+		OnClick(func(ctx app.Context, e app.Event) {
+			e.PreventDefault()
+			w.disabled = true
+			w.loadMessage = m
+			ctx.NewActionWithValue(client.ActionShowCardSpinners, true)
+			ctx.Async(func() {
+				_ = client.LaunchWorld(w.Item)
+				// TODO: erorr handling
+				ctx.Dispatch(func(ctx app.Context) {
+					ctx.NewActionWithValue(client.ActionShowCardSpinners, false)
+					w.disabled = false
+					w.loadMessage = ""
+					client.NewAppContext(ctx).
+						LoadData(client.StateKeyWorlds)
+				})
+			})
+		})
 }

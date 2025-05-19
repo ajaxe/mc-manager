@@ -4,3 +4,7 @@ const (
 	StateKeyWorlds   = "worlds"
 	StateKeyLaunches = "launches"
 )
+
+const (
+	ActionShowCardSpinners = "spinner-show"
+)

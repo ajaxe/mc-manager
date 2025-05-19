@@ -126,16 +126,19 @@ type FormSelect struct {
 	Value       string
 	BindTo      any
 	ID          string
+	OnChange    func(ctx app.Context, e app.Event)
+	Disabled    bool
 }
 
 func (f *FormSelect) Render() app.UI {
 	if f.ID == "" {
 		f.ID = fmt.Sprintf("sel-%v", time.Now().UnixMicro())
 	}
-	return app.Select().
+	el := app.Select().
 		ID(f.ID).
 		Class("form-select").
 		Aria("label", f.Label).
+		Disabled(f.Disabled).
 		Body(
 			app.Option().Selected(true).Text(f.Label),
 			app.Range(f.SelectItems).Map(func(key string) app.UI {
@@ -144,6 +147,12 @@ func (f *FormSelect) Render() app.UI {
 					Text(f.SelectItems[key]).
 					Selected(f.Value == key)
 			}),
-		).
-		OnChange(f.ValueTo(f.BindTo))
+		)
+
+	if f.OnChange != nil {
+		el.OnChange(f.OnChange)
+	} else {
+		el.OnChange(f.ValueTo(f.BindTo))
+	}
+	return el
 }
