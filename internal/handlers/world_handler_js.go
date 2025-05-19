@@ -14,8 +14,8 @@ func NewGameService(logger echo.Logger) GameService {
 	return &gameService{}
 }
 
-func (g *gameService) serverIntance() ([]string, error) {
-	return []string{}, nil
+func (g *gameService) serverDetails() ([]*models.GameServerDetail, error) {
+	return []*models.GameServerDetail{}, nil
 }
 func (g *gameService) createGameServer(w *models.WorldItem) (err error) {
 	return nil

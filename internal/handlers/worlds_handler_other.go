@@ -24,8 +24,8 @@ func NewGameService(logger echo.Logger) GameService {
 		},
 	}
 }
-func (g *gameService) serverIntance() (n []string, err error) {
-	n, err = g.op.Intances()
+func (g *gameService) serverDetails() (n []*models.GameServerDetail, err error) {
+	n, err = g.op.Details()
 	return
 }
 

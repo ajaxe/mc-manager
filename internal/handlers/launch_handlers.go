@@ -43,6 +43,9 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 		}
 
 		id, err := l.createLaunch(u)
+		if err != nil {
+			return
+		}
 
 		l.logger.Info("Created new launch item: %s", id.Hex())
 
@@ -67,7 +70,7 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 }
 
 func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.ObjectID, err error) {
-	w, err := db.WorlById(u.WorldItemID)
+	w, err := db.WorldById(u.WorldItemID)
 	if err != nil {
 		err = models.ErrAppGeneric(fmt.Errorf("world not found: %v", err))
 		return
@@ -75,15 +78,15 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 
 	gameService := NewGameService(l.logger)
 
-	existing, err := gameService.serverIntance()
+	existing, err := gameService.serverDetails()
 	if err != nil {
 		err = models.ErrAppGeneric(err)
 		return
 	}
 
-	if l.checkLauchItemName(existing, w.Name) {
+	if l.checkLauchItem(existing, w) {
 		l.logger.Info("Game server already running, cannot create new launch.")
-		err = models.ErrAppBadID(fmt.Errorf("Game server already running: %s", w.Name))
+		err = models.ErrAppGeneric(fmt.Errorf("Game server already running: %s", w.Name))
 		return
 	}
 
@@ -117,9 +120,9 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 
 // checks if the "world name" is already in the list of running game servers "names".
 // returns true if the world name is found in the list
-func (l *launchHandler) checkLauchItemName(names []string, worlName string) bool {
-	for _, name := range names {
-		if name == toContainerName(worlName) {
+func (l *launchHandler) checkLauchItem(details []*models.GameServerDetail, world *models.WorldItem) bool {
+	for _, d := range details {
+		if d.Name == toContainerName(world.Name) && d.GameMode == world.GameMode {
 			return true
 		}
 	}

@@ -107,6 +107,7 @@ func (g *GameServerOperations) Details() (details []*models.GameServerDetail, er
 		n = append(n, &models.GameServerDetail{
 			Name:        strings.TrimPrefix(c.Names[0], "/"),
 			WorldID:     c.Labels[LabelWorldId],
+			GameMode:    c.Labels[LabelWorldGameMode],
 			ContainerID: c.ID,
 		})
 	}

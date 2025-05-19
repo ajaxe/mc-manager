@@ -18,6 +18,7 @@ type LaunchItemListResult struct {
 }
 type CreateLaunchItem struct {
 	WorldItemID bson.ObjectID `json:"worldItemId"`
+	GameMode    string        `json:"gameMode"`
 }
 
 // ToLaunchItem creates a new LaunchItem from a WorldItem

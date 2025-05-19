@@ -21,6 +21,7 @@ func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
 
 	e.GET("/worlds", h.Worlds())
 	e.POST("/worlds", h.CreateWorld())
+	e.PUT("/worlds/:id", h.UpdateWorld("id"))
 	e.DELETE("/worlds/:id", h.DeleteWorld("id"))
 }
 
@@ -35,14 +36,14 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 			return
 		}
 
-		names, err := NewGameService(w.logger).serverIntance()
+		names, err := NewGameService(w.logger).serverDetails()
 		if err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
 		for i := range d {
-			d[i].IsActive = slices.ContainsFunc(names, func(s string) bool {
-				return toContainerName(d[i].Name) == s
+			d[i].IsActive = slices.ContainsFunc(names, func(s *models.GameServerDetail) bool {
+				return toContainerName(d[i].Name) == s.Name
 			})
 		}
 
@@ -100,6 +101,26 @@ func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
 		}
 
 		if err := db.DeleteWorldByID(id); err != nil {
+			return models.ErrAppGeneric(err)
+		}
+
+		return c.NoContent(http.StatusNoContent)
+	}
+}
+func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		i := c.Param(idParam)
+		id, err := bson.ObjectIDFromHex(i)
+		if err != nil {
+			return models.ErrAppBadID(err)
+		}
+
+		u := &models.WorldItem{}
+		if err := c.Bind(u); err != nil {
+			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
+		}
+
+		if err := db.UpdateWorldByID(id, u); err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
