@@ -16,6 +16,14 @@ To support dynamic build, to be as close as HMR
 wgo -xdir tmp -file .go -file .js -file .css  make run
 ```
 
+## Docker image build commands
+
+Image build command
+
+```pwsh
+docker build . --tag apogee-dev/mc-manager:local -f Dockerfile
+```
+
 ## Docker test commands
 
 Test image build command

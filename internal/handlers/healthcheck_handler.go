@@ -9,7 +9,9 @@ import (
 func Healthcheck() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Request().Method == http.MethodGet && c.Path() == "/healthcheck" {
+			m := c.Request().Method
+			p := c.Request().RequestURI
+			if m == http.MethodGet && p == "/healthcheck" {
 				return performHealthCheck(c)
 			}
 			return next(c)
