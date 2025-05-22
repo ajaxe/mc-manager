@@ -24,7 +24,7 @@ func Worlds() (d []*models.WorldItem, err error) {
 }
 func InsertWorld(w *models.WorldItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
-	w.ID = id
+	w.ID = id.Hex()
 
 	err = insertRecord(w, collectionWorlds)
 	return
@@ -50,14 +50,20 @@ func UpdateWorldByID(id bson.ObjectID, w *models.WorldItem) (err error) {
 		return
 	}
 
-	filter:= bson.D{{"_id", id }}
-	w.ID = id
+	filter := bson.D{{"_id", id.Hex()}}
+	if w.ID != id.Hex() {
+		w.ID = id.Hex()
+	}
 	ctx, cancel := context.WithTimeout(context.TODO(), writeTimeout)
 	defer cancel()
 
-	_, err = c.Database(clientInstance.DbName).
+	res, err := c.Database(clientInstance.DbName).
 		Collection(collectionWorlds).
 		ReplaceOne(ctx, filter, w)
+
+	if err == nil {
+		_ = res.MatchedCount
+	}
 
 	return
 }

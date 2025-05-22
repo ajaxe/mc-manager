@@ -89,7 +89,7 @@ func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
 			return models.ErrAppGeneric(fmt.Errorf("error saving user: %v", err))
 		}
 
-		return c.JSON(http.StatusOK, models.NewApiIDResult(id))
+		return c.JSON(http.StatusOK, models.NewApiIDResult(id.Hex()))
 	}
 }
 func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {

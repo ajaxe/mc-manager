@@ -32,7 +32,7 @@ func (s *ServiceConfig) defaultConfig(w *models.WorldItem) container.Config {
 		labels[splits[0]] = splits[1]
 	}
 	labels[LabelImageName] = s.Config.GameServer.ImageName
-	labels[LabelWorldId] = w.ID.Hex()
+	labels[LabelWorldId] = w.ID
 	labels[LabelWorldGameMode] = w.GameMode
 
 	env := []string{}

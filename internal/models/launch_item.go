@@ -1,24 +1,22 @@
 package models
 
-import "go.mongodb.org/mongo-driver/v2/bson"
-
 type LaunchItem struct {
-	ID         bson.ObjectID `bson:"_id" json:"id"`
-	WorldID    bson.ObjectID `bson:"world_id" json:"worldId"`
-	Name       string        `json:"name"`
-	WorldSeed  string        `bson:"world_seed" json:"worldSeed"`
-	GameMode   string        `bson:"game_mode" json:"gameMode"`
-	LaunchDate string        `bson:"launch_date" json:"launchDate"`
-	Status     string        `bson:"status" json:"status"`
-	Message    string        `bson:"message" json:"message"`
+	ID         string `bson:"_id" json:"id"`
+	WorldID    string `bson:"world_id" json:"worldId"`
+	Name       string `json:"name"`
+	WorldSeed  string `bson:"world_seed" json:"worldSeed"`
+	GameMode   string `bson:"game_mode" json:"gameMode"`
+	LaunchDate string `bson:"launch_date" json:"launchDate"`
+	Status     string `bson:"status" json:"status"`
+	Message    string `bson:"message" json:"message"`
 }
 type LaunchItemListResult struct {
 	ApiResult
 	Data []*LaunchItem `json:"data"`
 }
 type CreateLaunchItem struct {
-	WorldItemID bson.ObjectID `json:"worldItemId"`
-	GameMode    string        `json:"gameMode"`
+	WorldItemID string `json:"worldItemId"`
+	GameMode    string `json:"gameMode"`
 }
 
 // ToLaunchItem creates a new LaunchItem from a WorldItem

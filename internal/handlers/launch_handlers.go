@@ -38,7 +38,7 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
 		}
 
-		if u.WorldItemID.String() == "" || u.WorldItemID == bson.NilObjectID {
+		if u.WorldItemID == "" || u.WorldItemID == bson.NilObjectID.Hex() {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
 		}
 
@@ -49,7 +49,7 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 
 		l.logger.Info("Created new launch item: %s", id.Hex())
 
-		return c.JSON(http.StatusOK, models.NewApiIDResult(id))
+		return c.JSON(http.StatusOK, models.NewApiIDResult(id.Hex()))
 	}
 }
 
@@ -70,7 +70,11 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 }
 
 func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.ObjectID, err error) {
-	w, err := db.WorldById(u.WorldItemID)
+	i, err := bson.ObjectIDFromHex(u.WorldItemID)
+	if err != nil {
+		return
+	}
+	w, err := db.WorldById(i)
 	if err != nil {
 		err = models.ErrAppGeneric(fmt.Errorf("world not found: %v", err))
 		return

@@ -22,6 +22,6 @@ func WorldDelete(id string) error {
 }
 func WorldUpdate(w *models.WorldItem) (r models.ApiResult, err error) {
 	r = models.ApiResult{}
-	err = httpPut(buildApiURL(appBaseURL(), "/worlds/"+w.ID.Hex()), w, &r)
+	err = httpPut(buildApiURL(appBaseURL(), "/worlds/"+w.ID), w, &r)
 	return
 }

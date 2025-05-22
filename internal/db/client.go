@@ -41,7 +41,13 @@ func NewClientWithConfig(c config.AppConfig) (*mongo.Client, error) {
 		ApplyURI(c.Database.ConnectionURI).
 		SetServerAPIOptions(sAPI)
 
-	client, err := mongo.Connect(opts)
+	opts.SetBSONOptions(&options.BSONOptions{
+		ObjectIDAsHexString: true,
+		
+
+	})
+
+	client, err := mongo.Connect(opts) //set Decoder.ObjectIDAsHexString
 
 	if err != nil {
 		return nil, err

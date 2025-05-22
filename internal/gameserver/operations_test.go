@@ -80,7 +80,7 @@ func TestGameServerDetail(t *testing.T) {
 	id := bson.NewObjectID()
 	n := newWorldName("TestGameServerDetail")
 	worldItem := &models.WorldItem{
-		ID:   id,
+		ID:   id.Hex(),
 		Name: n,
 	}
 

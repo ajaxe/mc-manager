@@ -22,7 +22,7 @@ func (w *WorldItemCard) Render() app.UI {
 		b = "border-success"
 	}
 	return app.Div().
-		ID(w.Item.ID.Hex()).
+		ID(w.Item.ID).
 		Class("card mt-2 bg-dark-subtle "+b).
 		Body(
 			&CardSpinner{
@@ -39,8 +39,8 @@ func (w *WorldItemCard) Render() app.UI {
 					),
 				app.H6().Class("card-subtitle mb-2 text-body-secondary").Text(w.Item.Description),
 				app.P().Class("card-text").Body(
-					app.Label().For("ws-"+w.Item.ID.Hex()).Text("World Seed: "),
-					app.Span().ID("ws-"+w.Item.ID.Hex()).Class("ms-3").Text(w.Item.WorldSeed),
+					app.Label().For("ws-"+w.Item.ID).Text("World Seed: "),
+					app.Span().ID("ws-"+w.Item.ID).Class("ms-3").Text(w.Item.WorldSeed),
 				),
 				app.P().Class("card-text").
 					Body(
@@ -54,7 +54,7 @@ func (w *WorldItemCard) Render() app.UI {
 						OnClick(func(ctx app.Context, e app.Event) {
 							e.PreventDefault()
 							ctx.Async(func() {
-								client.WorldDelete(w.Item.ID.Hex())
+								client.WorldDelete(w.Item.ID)
 								ctx.Dispatch(func(ctx app.Context) {
 									client.NewAppContext(ctx).
 										LoadData(client.StateKeyWorlds)
@@ -67,7 +67,7 @@ func (w *WorldItemCard) Render() app.UI {
 }
 func (w *WorldItemCard) modeSelector() app.UI {
 	w.intiGamemode = w.Item.GameMode
-	id := fmt.Sprintf("select-%s", w.Item.ID.Hex())
+	id := fmt.Sprintf("select-%s", w.Item.ID)
 	return app.Span().Body(
 		&FormLabel{
 			For:   id,

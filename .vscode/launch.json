@@ -9,9 +9,10 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "program": "${workspaceFolder}/cmd/webapp/main.go",
+      "program": "./cmd/webapp/",
+      "buildFlags": ["-tags", "windows"],
       "windows": {
-        "cwd": "${workspaceFolder}/tmp"
+        "cwd": "./tmp"
       },
       "preLaunchTask": "Make build"
     }

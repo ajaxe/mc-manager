@@ -64,13 +64,15 @@ func deleteByID(id bson.ObjectID, collection string) (err error) {
 		return
 	}
 
-	f := bson.D{{"_id", id}}
+	f := bson.D{{"_id", id.Hex()}}
 
 	res, err := c.Database(clientInstance.DbName).
 		Collection(collection).
 		DeleteMany(context.TODO(), f)
 
-	_ = res.DeletedCount
+	if err == nil {
+		_ = res.DeletedCount
+	}
 
 	return
 }
@@ -100,7 +102,7 @@ func readByID(id bson.ObjectID, v dbValFunc, collection string) (d any, err erro
 	ctx, cancel := context.WithTimeout(context.Background(), readTimeout)
 	defer cancel()
 
-	f := bson.D{{"_id", id}}
+	f := bson.D{{"_id", id.Hex()}}
 
 	res := c.Database(clientInstance.DbName).
 		Collection(collection).
@@ -111,6 +113,7 @@ func readByID(id bson.ObjectID, v dbValFunc, collection string) (d any, err erro
 	}
 
 	resp := v()
+
 	err = res.Decode(resp)
 	if err != nil {
 		return nil, err

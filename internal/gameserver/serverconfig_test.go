@@ -17,7 +17,7 @@ func TestDefaultConfig(t *testing.T) {
 	gamemode := "survival"
 
 	data := &models.WorldItem{
-		ID:        bson.NewObjectID(),
+		ID:        bson.NewObjectID().Hex(),
 		Name:      n,
 		WorldSeed: seed,
 		GameMode:  gamemode,
@@ -27,8 +27,8 @@ func TestDefaultConfig(t *testing.T) {
 
 	cfg := sut.defaultConfig(data)
 
-	if cfg.Labels[LabelWorldId] != data.ID.Hex() {
-		t.Fatalf("Label '%s' must be '%s', got: '%v'", LabelWorldId, data.ID.Hex(), cfg.Labels[LabelWorldId])
+	if cfg.Labels[LabelWorldId] != data.ID {
+		t.Fatalf("Label '%s' must be '%s', got: '%v'", LabelWorldId, data.ID, cfg.Labels[LabelWorldId])
 	}
 	if cfg.Labels[LabelImageName] != sut.Config.GameServer.ImageName {
 		t.Fatalf("Label '%s' must be '%s', got: '%v'", LabelImageName,

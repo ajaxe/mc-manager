@@ -24,7 +24,7 @@ func Launches() (d []*models.LaunchItem, err error) {
 }
 func LaunchInsert(l *models.LaunchItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
-	l.ID = id
+	l.ID = id.Hex()
 
 	err = insertRecord(l, collectionLaunches)
 	return
