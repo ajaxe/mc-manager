@@ -17,8 +17,8 @@ ENV GOCACHE=/root/.cache/go-build
 RUN --mount=type=cache,target=/go/pkg/mod/ \
     --mount=type=cache,target="/root/.cache/go-build" \
     --mount=type=bind,target=. \
-    GOARCH=wasm GOOS=js go build -o /root/app/web/app.wasm ./cmd/webapp \
-    && go build -o /root/app/server ./cmd/webapp/ \
+    GOARCH=wasm GOOS=js go build -tags wasm -o /root/app/web/app.wasm ./cmd/webapp \
+    && go build -tags unix -o /root/app/server ./cmd/webapp/ \
     && cp -a ./web/* /root/app/web/
 
 FROM alpine:latest AS runner
