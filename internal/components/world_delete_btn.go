@@ -4,7 +4,8 @@ import "github.com/maxence-charriere/go-app/v10/pkg/app"
 
 type WorldDeleteBtn struct {
 	app.Compo
-	active bool
+	active   bool
+	OnDelete app.EventHandler
 }
 
 func (w *WorldDeleteBtn) Render() app.UI {
@@ -27,7 +28,13 @@ func (w *WorldDeleteBtn) Render() app.UI {
 						app.I().
 							Style("font-size", "1.8rem").
 							Class("bi bi-x-lg " + c),
-					)
+					).
+					OnClick(w.delete)
 			}),
 		)
+}
+func (w *WorldDeleteBtn) delete(ctx app.Context, e app.Event) {
+	if w.OnDelete != nil {
+		w.OnDelete(ctx, e)
+	}
 }

@@ -10,10 +10,11 @@ import (
 
 type WorldItemCard struct {
 	app.Compo
-	Item         *models.WorldItem
-	intiGamemode string
-	disabled     bool
-	loadMessage  string
+	Item              *models.WorldItem
+	intiGamemode      string
+	disabled          bool
+	loadMessage       string
+	showConfirmDelete bool
 }
 
 func (w *WorldItemCard) Render() app.UI {
@@ -29,6 +30,9 @@ func (w *WorldItemCard) Render() app.UI {
 				Show:    w.disabled,
 				Message: w.loadMessage,
 			},
+			&WorldDeleteConfirm{
+				Show: w.showConfirmDelete,
+			},
 			app.Div().Class("card-body").Body(
 				app.H5().Class("card-title").
 					Body(
@@ -38,7 +42,8 @@ func (w *WorldItemCard) Render() app.UI {
 							active: w.Item.IsActive,
 						},
 						&WorldDeleteBtn{
-							active: w.Item.IsActive,
+							active:   w.Item.IsActive,
+							OnDelete: w.confirmDelete,
 						},
 					),
 				app.H6().Class("card-subtitle mb-2 text-body-secondary").Text(w.Item.Description),
@@ -130,4 +135,8 @@ func (w *WorldItemCard) launchWorldBtn() app.UI {
 				})
 			})
 		})
+}
+func (w *WorldItemCard) confirmDelete(ctx app.Context, e app.Event) {
+	w.showConfirmDelete = true
+	ctx.Update()
 }
