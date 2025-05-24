@@ -39,7 +39,8 @@ func (w *WorldItemCard) Render() app.UI {
 						&WorldFavBtn{},
 						app.Text(w.Item.Name+"  "),
 						&WorldSelectBtn{
-							active: w.Item.IsActive,
+							active:   w.Item.IsActive,
+							OnSelect: w.performWorldLaunch,
 						},
 						&WorldDeleteBtn{
 							active:   w.Item.IsActive,
@@ -57,20 +58,6 @@ func (w *WorldItemCard) Render() app.UI {
 					),
 
 				w.launchWorldBtn(),
-
-				app.If(!w.Item.IsActive, func() app.UI {
-					return app.Button().Class("btn btn-link").Disabled(w.disabled).Text("Delete world").
-						OnClick(func(ctx app.Context, e app.Event) {
-							e.PreventDefault()
-							ctx.Async(func() {
-								client.WorldDelete(w.Item.ID)
-								ctx.Dispatch(func(ctx app.Context) {
-									client.NewAppContext(ctx).
-										LoadData(client.StateKeyWorlds)
-								})
-							})
-						})
-				}),
 			),
 		)
 }
@@ -111,32 +98,54 @@ func (w *WorldItemCard) modeSelector() app.UI {
 	)
 }
 func (w *WorldItemCard) launchWorldBtn() app.UI {
-	txt := "Launch world"
-	m := "Launching world."
-	if w.Item.IsActive {
-		txt = "Change game mode"
-		m = "Re-launching world in new Game-mode"
-	}
-	return app.Button().Class("btn btn-link").Disabled(w.disabled).Text(txt).
-		OnClick(func(ctx app.Context, e app.Event) {
-			e.PreventDefault()
-			w.disabled = true
-			w.loadMessage = m
-			ctx.NewActionWithValue(client.ActionShowCardSpinners, true)
-			ctx.Async(func() {
-				_ = client.LaunchWorld(w.Item)
-				// TODO: erorr handling
-				ctx.Dispatch(func(ctx app.Context) {
-					ctx.NewActionWithValue(client.ActionShowCardSpinners, false)
-					w.disabled = false
-					w.loadMessage = ""
-					client.NewAppContext(ctx).
-						LoadData(client.StateKeyWorlds)
-				})
+	txt := "Change game mode"
+	m := "Re-launching world in new Game-mode"
+	
+	return app.If(w.Item.IsActive, func() app.UI {
+		return app.Button().Class("btn btn-link").Disabled(w.disabled).Text(txt).
+			OnClick(func(ctx app.Context, e app.Event) {
+				e.PreventDefault()
+				w.disabled = true
+				w.loadMessage = m
+				w.performWorldLaunch(ctx, e)
 			})
+	}).Else(func() app.UI {
+		return app.Span()
+	})
+}
+func (w *WorldItemCard) performWorldLaunch(ctx app.Context, _ app.Event) {
+	m := "Launching world."
+	w.disabled = true
+	w.loadMessage = m
+	ctx.NewActionWithValue(client.ActionShowCardSpinners, true)
+	ctx.Async(func() {
+		_ = client.LaunchWorld(w.Item)
+		// TODO: erorr handling
+		ctx.Dispatch(func(ctx app.Context) {
+			ctx.NewActionWithValue(client.ActionShowCardSpinners, false)
+			w.disabled = false
+			w.loadMessage = ""
+			client.NewAppContext(ctx).
+				LoadData(client.StateKeyWorlds)
 		})
+	})
+}
+func (w *WorldItemCard) performWorldDelete(ctx app.Context, _ app.Event) {
+	ctx.Async(func() {
+		client.WorldDelete(w.Item.ID)
+		ctx.Dispatch(func(ctx app.Context) {
+			client.NewAppContext(ctx).
+				LoadData(client.StateKeyWorlds)
+		})
+	})
 }
 func (w *WorldItemCard) confirmDelete(ctx app.Context, e app.Event) {
-	w.showConfirmDelete = true
-	ctx.Update()
+	ctx.NewActionWithValue(client.ActionShowConfirm, confirmModalData{
+		title:   "Delete World",
+		message: fmt.Sprintf("Delete world '%s' from the game server. Are you sure?", w.Item.Name),
+		show:    true,
+		confirmCallback: func(ctx app.Context, e app.Event) {
+			w.performWorldDelete(ctx, e)
+		},
+	})
 }

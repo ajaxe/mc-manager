@@ -7,4 +7,5 @@ const (
 
 const (
 	ActionShowCardSpinners = "spinner-show"
+	ActionShowConfirm      = "confirm-show"
 )

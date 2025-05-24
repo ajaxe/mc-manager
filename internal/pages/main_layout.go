@@ -15,6 +15,7 @@ func (m *MainLayout) Render() app.UI {
 	return app.Div().Class("container").Body(
 		m.appName(),
 		components.AppCodeUpdate(),
+		components.AppConfirmModal(),
 		app.Div().Class("row mt-4").Body(
 			app.Div().Class("col-auto").
 				Body(

@@ -18,3 +18,6 @@ func AppSidebarMenu() *SidebarMenu {
 func AppLaunchItemList() *LaunchItemList {
 	return &LaunchItemList{}
 }
+func AppConfirmModal() *ConfirmModal {
+	return &ConfirmModal{}
+}
