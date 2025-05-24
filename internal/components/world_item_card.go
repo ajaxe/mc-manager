@@ -36,7 +36,10 @@ func (w *WorldItemCard) Render() app.UI {
 			app.Div().Class("card-body").Body(
 				app.H5().Class("card-title").
 					Body(
-						&WorldFavBtn{},
+						&WorldFavBtn{
+							favorite:   w.Item.IsFavorite,
+							OnFavorite: w.setFavorite,
+						},
 						app.Text(w.Item.Name+"  "),
 						&WorldSelectBtn{
 							active:   w.Item.IsActive,
@@ -100,7 +103,7 @@ func (w *WorldItemCard) modeSelector() app.UI {
 func (w *WorldItemCard) launchWorldBtn() app.UI {
 	txt := "Change game mode"
 	m := "Re-launching world in new Game-mode"
-	
+
 	return app.If(w.Item.IsActive, func() app.UI {
 		return app.Button().Class("btn btn-link").Disabled(w.disabled).Text(txt).
 			OnClick(func(ctx app.Context, e app.Event) {
@@ -147,5 +150,19 @@ func (w *WorldItemCard) confirmDelete(ctx app.Context, e app.Event) {
 		confirmCallback: func(ctx app.Context, e app.Event) {
 			w.performWorldDelete(ctx, e)
 		},
+	})
+}
+func (w *WorldItemCard) setFavorite(ctx app.Context, val bool) {
+	w.Item.IsFavorite = val
+	w.disabled = true
+
+	ctx.Async(func() {
+		_, _ = client.WorldUpdate(w.Item)
+
+		ctx.Dispatch(func(ctx app.Context) {
+			w.disabled = false
+			w.loadMessage = ""
+			ctx.Update()
+		})
 	})
 }

@@ -8,12 +8,17 @@ import (
 
 type WorldFavBtn struct {
 	app.Compo
-	color string
-	ico   string
+	color      string
+	ico        string
+	favorite   bool
+	OnFavorite func(app.Context, bool)
 }
 
 func (w *WorldFavBtn) Render() app.UI {
-	if w.color == "" {
+	if w.favorite {
+		w.color = "text-warning"
+		w.ico = "bi-star-fill"
+	} else {
 		w.color = "text-secondary"
 		w.ico = "bi-star"
 	}
@@ -30,16 +35,11 @@ func (w *WorldFavBtn) Render() app.UI {
 						Class(fmt.Sprintf("bi %s %s", w.color, w.ico)),
 				).
 				OnClick(func(ctx app.Context, e app.Event) {
-					w.toggleState()
+					w.toggleState(ctx)
 				}),
 		)
 }
-func (w *WorldFavBtn) toggleState() {
-	if w.color == "text-secondary" {
-		w.color = "text-warning"
-		w.ico = "bi-star-fill"
-	} else {
-		w.color = "text-secondary"
-		w.ico = "bi-star"
-	}
+func (w *WorldFavBtn) toggleState(ctx app.Context) {
+	w.favorite = !w.favorite
+	w.OnFavorite(ctx, w.favorite)
 }

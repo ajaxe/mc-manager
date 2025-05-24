@@ -8,6 +8,7 @@ type WorldItem struct {
 	GameMode    string `bson:"game_mode" json:"gameMode"`
 	CreateDate  string `bson:"create_date" json:"createDate"`
 	IsActive    bool   `bson:"is_active" json:"isActive"`
+	IsFavorite  bool   `bson:"is_favorite" json:"isFavorite"`
 }
 
 type WorldItemListResult struct {
