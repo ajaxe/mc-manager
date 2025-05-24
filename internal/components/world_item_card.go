@@ -32,8 +32,12 @@ func (w *WorldItemCard) Render() app.UI {
 			app.Div().Class("card-body").Body(
 				app.H5().Class("card-title").
 					Body(
+						&WorldFavBtn{},
 						app.Text(w.Item.Name+"  "),
 						&WorldSelectBtn{
+							active: w.Item.IsActive,
+						},
+						&WorldDeleteBtn{
 							active: w.Item.IsActive,
 						},
 					),
