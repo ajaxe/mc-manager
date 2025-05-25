@@ -26,6 +26,7 @@ func NewBackendApi() *echo.Echo {
 
 	a := e.Group("/api")
 
+	handlers.AddLoginHandlers(a, e.Logger)
 	handlers.AddWorldsHandlers(a, e.Logger)
 	handlers.AddLaunchHandlers(a, e.Logger)
 

@@ -1,6 +1,7 @@
 package pages
 
 import (
+	"github.com/ajaxe/mc-manager/internal/client"
 	"github.com/ajaxe/mc-manager/internal/components"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
@@ -8,6 +9,15 @@ import (
 type MainLayout struct {
 	app.Compo
 	Content []app.UI
+}
+
+func (m *MainLayout) OnNav(ctx app.Context) {
+	ctx.Async(func() {
+		loc := client.LoginCheck()
+		ctx.Dispatch(func(ctx app.Context) {
+			app.Logf("loc: %v", loc)
+		})
+	})
 }
 
 func (m *MainLayout) Render() app.UI {
