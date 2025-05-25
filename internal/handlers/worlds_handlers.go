@@ -4,10 +4,13 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/http"
+	"os"
+	"path"
 	"slices"
 	"sort"
 	"time"
 
+	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
@@ -100,7 +103,7 @@ func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
 			return models.ErrAppBadID(err)
 		}
 
-		if err := db.DeleteWorldByID(id); err != nil {
+		if err := w.deleteWorld(id); err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
@@ -126,4 +129,31 @@ func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
 
 		return c.NoContent(http.StatusNoContent)
 	}
+}
+
+func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
+	ww, err := db.WorldById(id)
+	if err != nil {
+		return
+	}
+
+	w.logger.Infof("found world by id: %v", ww.ID)
+
+	if err := db.DeleteWorldByID(id); err != nil {
+		return models.ErrAppGeneric(err)
+	}
+
+	cfg := config.LoadAppConfig()
+
+	p := path.Join(cfg.GameServer.WorldDir, ww.Name)
+
+	if _, e := os.Stat(p); e != nil {
+		w.logger.Warnf("path: %s does not exist: %v", p, e)
+	}
+
+	if e := os.RemoveAll(p); e != nil {
+		w.logger.Warnf("attempted to remove dir: %s failed: %v", p, e)
+	}
+
+	return
 }

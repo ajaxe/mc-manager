@@ -13,6 +13,7 @@ type AppConfig struct {
 	} `mapstructure:"database"`
 	GameServer struct {
 		HostingDir string   `mapstructure:"hosting_dir"`
+		WorldDir   string   `mapstructure:"world_dir"`
 		ImageName  string   `mapstructure:"image_name"`
 		EnvVars    []string `mapstructure:"env_vars"`
 		Volumes    []string `mapstructure:"volumes"`

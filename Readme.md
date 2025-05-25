@@ -1,5 +1,18 @@
 # Minecarft Manager
 
+## Configuration
+
+Created shared volumen mapped to minecraft worlds directory, uising
+
+```bash
+docker volume create --driver local \
+  --opt type=none \
+  --opt device=<host_dir>/minecraft/data/worlds \
+  --opt o=bind minecraft-worlds
+```
+
+Above volume is mapped to container path _/minecraft/worlds_. The application also removes the world data folder when a world is deleted.
+
 ## Build tags
 
 `js` build tag is used to exclude any dependency on `gameserver` package & related docker client SDK, when build wasm package.

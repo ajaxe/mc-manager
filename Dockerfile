@@ -28,6 +28,9 @@ ARG InstallFolder=/root/app \
 
 RUN apk add --no-cache curl
 
+# local folder to shared minecraft-worlds volume
+RUN mkdir -p /minecraft/worlds
+
 RUN mkdir -p /home/app/
 WORKDIR /home/app/
 

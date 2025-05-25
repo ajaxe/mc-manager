@@ -56,7 +56,8 @@ func (s *ServiceConfig) defaultConfig(w *models.WorldItem) container.Config {
 }
 
 func (s *ServiceConfig) defaultHostConfig() container.HostConfig {
-	replacer := strings.NewReplacer("${HOSTING_DIR}", s.Config.GameServer.HostingDir)
+	const token = "${HOSTING_DIR}"
+	replacer := strings.NewReplacer(token, s.Config.GameServer.HostingDir)
 	vols := []mount.Mount{}
 	for _, v := range s.Config.GameServer.Volumes {
 		splits := strings.Split(v, ":")
@@ -68,7 +69,11 @@ func (s *ServiceConfig) defaultHostConfig() container.HostConfig {
 
 		m := mount.Mount{}
 
-		m.Type = mount.TypeBind
+		if strings.Contains(splits[0], token) {
+			m.Type = mount.TypeBind
+		} else {
+			m.Type = mount.TypeVolume
+		}
 		m.Source = replacer.Replace(splits[0])
 		m.Target = splits[1]
 
