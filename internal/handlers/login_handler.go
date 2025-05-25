@@ -1,8 +1,7 @@
 package handlers
 
 import (
-	"net/http"
-
+	"github.com/ajaxe/mc-manager/internal/http"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
 )

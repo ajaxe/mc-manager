@@ -13,10 +13,7 @@ type MainLayout struct {
 
 func (m *MainLayout) OnNav(ctx app.Context) {
 	ctx.Async(func() {
-		loc := client.LoginCheck()
-		ctx.Dispatch(func(ctx app.Context) {
-			app.Logf("loc: %v", loc)
-		})
+		client.LoginCheck()
 	})
 }
 

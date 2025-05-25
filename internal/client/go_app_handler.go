@@ -18,4 +18,6 @@ var GoAppHandler = &app.Handler{
 	HTML: func() app.HTMLHtml {
 		return app.Html().DataSet("bs-theme", "dark")
 	},
+	LoadingLabel:            "Loading... {progress}%",
+	WasmContentLengthHeader: "X-Uncompressed-Content-Length",
 }

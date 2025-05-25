@@ -5,17 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"strings"
 
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
-var httpClient = &http.Client{
-	CheckRedirect: func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	},
-}
+const (
+	httpMethodGet    = "get"
+	httpMethodPost   = "post"
+	httpMethodPut    = "put"
+	httpMethodDelete = "delete"
+)
 
 func buildApiURL(b, p string) string {
 	return fmt.Sprintf("%s/api/%s", strings.TrimSuffix(b, "/"), strings.TrimPrefix(p, "/"))
@@ -28,71 +28,71 @@ func appBaseURL() string {
 }
 
 func httpGet(u string, v interface{}) error {
-	res, err := http.Get(u)
-	if err != nil {
-		return err
-	}
-	defer res.Body.Close()
+	resp, code, err := httpCall("", u, nil)
 
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("error code: %v", res.StatusCode)
+	if !successful(code) {
+		return fmt.Errorf("error code: %v", code)
 	}
 
-	b, _ := io.ReadAll(res.Body)
+	b, _ := io.ReadAll(strings.NewReader(*resp))
 	err = json.Unmarshal(b, &v)
 
 	return err
 }
 func httpPost(u string, payload, response interface{}) error {
-	return httpWithPayload(http.MethodPost, u, payload, response)
+	return httpWithPayload(httpMethodPost, u, payload, response)
 }
 
 func httpPut(u string, payload, response interface{}) error {
-	return httpWithPayload(http.MethodPut, u, payload, response)
+	return httpWithPayload(httpMethodPut, u, payload, response)
 }
 func httpDelete(u string, response interface{}) error {
-	return httpWithPayload(http.MethodDelete, u, nil, response)
+	return httpWithPayload(httpMethodDelete, u, nil, response)
 }
 func httpWithPayload(method, u string, payload, response interface{}) (err error) {
-	res, err := httpWithPayloadInternal(method, u, payload)
+	resp, _, err := httpCall(method, u, payload)
 	if err != nil {
 		return
 	}
-	defer res.Body.Close()
 
-	b, _ := io.ReadAll(res.Body)
+	b, _ := io.ReadAll(strings.NewReader(*resp))
+
 	err = json.Unmarshal(b, &response)
 
 	return
 }
-func httpWithPayloadInternal(method, u string, payload interface{}) (res *http.Response, err error) {
-	buf := bytes.NewBuffer([]byte{})
-
+func httpCall(method, u string, payload interface{}) (resp *string, code int, err error) {
+	p := map[string]any{}
 	if payload != nil {
+		buf := bytes.NewBuffer([]byte{})
 		v, e := json.Marshal(payload)
 		buf = bytes.NewBuffer(v)
 		if e != nil {
 			err = e
 			return
 		}
+		p["body"] = string(buf.Bytes())
 	}
 
-	req, err := http.NewRequest(method, u, buf)
-	req.Header.Set("Content-Type", "application/json")
-
-	if err != nil {
-		return
+	if method == "" {
+		method = "GET"
 	}
-	res, err = httpClient.Do(req)
+	p["method"] = method
+	p["headers"] = map[string]any{
+		"Content-Type": "application/json",
+	}
+
+	resp, code, err = fetch(u, &p)
+
 	return
 }
 
-func LoginCheck() (redirect string) {
-	res, e := httpWithPayloadInternal(http.MethodPost, buildApiURL(appBaseURL(), "/login/check"), struct{}{})
-	if h := res.Header.Get("Location"); res.StatusCode == http.StatusFound && h != "" {
-		redirect = h
-	}
-	app.Logf("headers: %v, status: %v, URL: %v", res.Header, res.StatusCode, res.Request.URL)
+func LoginCheck() {
+	_, _, e := httpCall("post", buildApiURL(appBaseURL(), "/login/check"), struct{}{})
+
 	app.Logf("error: %v", e)
 	return
+}
+func successful(code int) bool {
+	return 100 <= code && code <= 399
 }
