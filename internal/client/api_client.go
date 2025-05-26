@@ -81,16 +81,16 @@ func httpCall(method, u string, payload interface{}) (resp *string, code int, er
 	p["headers"] = map[string]any{
 		"Content-Type": "application/json",
 	}
+	p["redirect"] = "error"
 
 	resp, code, err = fetch(u, &p)
 
 	return
 }
 
-func LoginCheck() {
-	_, _, e := httpCall("post", buildApiURL(appBaseURL(), "/login/check"), struct{}{})
+func LoginCheck() (e error) {
+	_, _, e = httpCall("post", buildApiURL(appBaseURL(), "/login/check"), struct{}{})
 
-	app.Logf("error: %v", e)
 	return
 }
 func successful(code int) bool {

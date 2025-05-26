@@ -147,7 +147,7 @@ func (w *WorldItemCard) confirmDelete(ctx app.Context, e app.Event) {
 		title:   "Delete World",
 		message: fmt.Sprintf("Delete world '%s' from the game server. Are you sure?", w.Item.Name),
 		show:    true,
-		confirmCallback: func(ctx app.Context, e app.Event) {
+		confirmCallback: func(_ app.Context, _ app.Event) {
 			w.performWorldDelete(ctx, e)
 		},
 	})
