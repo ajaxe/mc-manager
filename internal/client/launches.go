@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/ajaxe/mc-manager/internal/models"
 )
 
@@ -12,9 +14,10 @@ func LaunchWorld(w *models.WorldItem) (err error) {
 	}, r)
 	return
 }
-func LaunchList() (l *models.LaunchItemListResult, err error) {
-	l = &models.LaunchItemListResult{}
-	err = httpGet(buildApiURL(appBaseURL(), "/launches"), l)
+func LaunchList(r models.LaunchItemListRequest) (l models.LaunchItemListResult, err error) {
+	l = models.LaunchItemListResult{}
+	p := fmt.Sprintf("/launches?dir=%s&cursorId=%s", r.Direction, r.CursorID)
+	err = httpGet(buildApiURL(appBaseURL(), p), &l)
 
 	return
 }

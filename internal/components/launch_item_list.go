@@ -1,8 +1,6 @@
 package components
 
 import (
-	"fmt"
-
 	"github.com/ajaxe/mc-manager/internal/client"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
@@ -10,22 +8,52 @@ import (
 
 type LaunchItemList struct {
 	app.Compo
-	items []*models.LaunchItem
+	items     models.LaunchItemListResult
+	incoming  models.LaunchItemListResult
+	direction string
 }
 
 func (l *LaunchItemList) OnMount(ctx app.Context) {
-	fmt.Printf("component mounted: %s\n", app.Window().URL())
-	ctx.ObserveState(client.StateKeyLaunches, &l.items)
+	ctx.ObserveState(client.StateKeyLaunches, &l.incoming)
 }
 func (l *LaunchItemList) Render() app.UI {
+	if len(l.incoming.Results) != 0 {
+		l.items = l.incoming
+	}
+
+	if l.direction == models.PageDirectionPrev {
+		l.items.PrevID = l.incoming.PrevID
+	}
+	if l.direction == models.PageDirectionNext {
+		l.items.NextID = l.incoming.NextID
+	}
+
+	r := l.items.Results
+
 	return app.Div().
 		//Class("row g-4").
 		Body(
+			&TablePager{
+				NextID: l.items.NextID,
+				PrevID: l.items.PrevID,
+				OnClick: func(ctx app.Context, s string) {
+					id := l.items.PrevID
+					if s == models.PageDirectionNext {
+						id = l.items.NextID
+					}
+					l.direction = s
+					client.NewAppContext(ctx).
+						LoadData(client.StateKeyLaunches, models.LaunchItemListRequest{
+							Direction: s,
+							CursorID:  id,
+						})
+				},
+			},
 			l.header(),
-			app.Range(l.items).
+			app.Range(r).
 				Slice(func(i int) app.UI {
 					return &LaunchItemCard{
-						Item: l.items[i],
+						Item: r[i],
 					}
 				}),
 		)

@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"github.com/ajaxe/mc-manager/internal/http"
-	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,11 +18,9 @@ type loginHandler struct {
 
 func (l *loginHandler) check() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		/* return c.JSON(http.StatusOK, models.ApiResult{
+		/* return c.JSON(http.StatusOK, &models.ApiResult{
 			Success: true,
 		}) */
-		return c.JSON(http.StatusOK, &models.ApiResult{
-			Success: true,
-		})
+		return c.Redirect(302, "https://localhost:8000/404")
 	}
 }

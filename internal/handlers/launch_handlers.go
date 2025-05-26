@@ -55,13 +55,24 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 
 func (l *launchHandler) Launches() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
-		l, err := db.Launches()
+		dir := c.QueryParam("dir")
+		curID := c.QueryParam("cursorId")
+
+		if dir == "" {
+			dir = models.PageDirectionNext
+		}
+
+		paged, err := db.Launches(db.PaginationOptions{
+			Direction: dir,
+			PageSize:  10,
+			CursorID:  curID,
+		})
 		if err != nil {
 			return
 		}
 
 		return c.JSON(http.StatusOK, &models.LaunchItemListResult{
-			Data: l,
+			PaginationResult: paged,
 			ApiResult: models.ApiResult{
 				Success: true,
 			},

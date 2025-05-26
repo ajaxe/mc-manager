@@ -1,5 +1,10 @@
 package models
 
+const (
+	PageDirectionNext = "next"
+	PageDirectionPrev = "prev"
+)
+
 type LaunchItem struct {
 	ID         string `bson:"_id" json:"id"`
 	WorldID    string `bson:"world_id" json:"worldId"`
@@ -10,9 +15,15 @@ type LaunchItem struct {
 	Status     string `bson:"status" json:"status"`
 	Message    string `bson:"message" json:"message"`
 }
+
+type LaunchItemListRequest struct {
+	Direction string
+	CursorID  string
+}
+
 type LaunchItemListResult struct {
 	ApiResult
-	Data []*LaunchItem `json:"data"`
+	PaginationResult[LaunchItem]
 }
 type CreateLaunchItem struct {
 	WorldItemID string `json:"worldItemId"`

@@ -18,9 +18,6 @@ type readOptions struct {
 }
 
 func readAllCollection(ro readOptions) (d []any, err error) {
-	if ro.filter == nil {
-		ro.filter = &bson.D{}
-	}
 	if ro.dbVal == nil {
 		err = fmt.Errorf("'dbVal' is required")
 		return
@@ -28,6 +25,9 @@ func readAllCollection(ro readOptions) (d []any, err error) {
 	if ro.collection == "" {
 		err = fmt.Errorf("'collection' name is required")
 		return
+	}
+	if ro.filter == nil {
+		ro.filter = &bson.D{}
 	}
 
 	c, err := NewClient()
@@ -54,6 +54,22 @@ func readAllCollection(ro readOptions) (d []any, err error) {
 		}
 		d = append(d, r)
 	}
+
+	return
+}
+
+func collectionCount(name string) (count int64, err error) {
+	c, err := NewClient()
+	if err != nil {
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), readTimeout)
+	defer cancel()
+
+	count, err = c.Database(clientInstance.DbName).
+		Collection(name).
+		EstimatedDocumentCount(ctx)
 
 	return
 }
