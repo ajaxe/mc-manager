@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"regexp"
 	"slices"
 	"sort"
 	"time"
@@ -72,6 +73,10 @@ func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
 
 		if u.Name == "" {
 			return models.NewAppError(http.StatusBadRequest, "World name is required.", nil)
+		}
+
+		if err := w.validateWorldName(u.Name); err != nil {
+			return models.NewAppError(http.StatusBadRequest, err.Error(), err)
 		}
 
 		if u.WorldSeed == "" {
@@ -156,4 +161,17 @@ func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
 	}
 
 	return
+}
+func (w *worldsHandler) validateWorldName(n string) error {
+	expr := regexp.MustCompile(`^[a-zA-Z0-9 _-]{4,32}$`)
+
+	if len(n) < 4 || len(n) > 32 {
+		return fmt.Errorf("World name should be 4 to 32 characters long.")
+	}
+
+	if !expr.MatchString(n) {
+		return fmt.Errorf("Invalid world name. Allowed character are: a to z, 'space', - and _")
+	}
+
+	return nil
 }
