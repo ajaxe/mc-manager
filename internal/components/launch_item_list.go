@@ -21,11 +21,16 @@ func (l *LaunchItemList) Render() app.UI {
 		l.items = l.incoming
 	}
 
-	if l.direction == models.PageDirectionPrev {
-		l.items.PrevID = l.incoming.PrevID
-	}
-	if l.direction == models.PageDirectionNext {
-		l.items.NextID = l.incoming.NextID
+	l.items.PrevID = l.incoming.PrevID
+	l.items.NextID = l.incoming.NextID
+
+	if !l.incoming.HasMore {
+		if l.direction == models.PageDirectionPrev {
+			l.items.PrevID = ""
+		}
+		if l.direction == models.PageDirectionNext {
+			l.items.NextID = ""
+		}
 	}
 
 	r := l.items.Results

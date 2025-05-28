@@ -5,4 +5,5 @@ type PaginationResult[V any] struct {
 	Results []*V   `json:"results"`
 	NextID  string `json:"nextId"`
 	PrevID  string `json:"prevId"`
+	HasMore bool   `json:"hasMore"`
 }

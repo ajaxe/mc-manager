@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
@@ -57,19 +58,9 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		dir := c.QueryParam("dir")
 		curID := c.QueryParam("cursorId")
+		pgs := c.QueryParam("pageSize")
 
-		if dir == "" {
-			dir = models.PageDirectionNext
-		}
-
-		paged, err := db.Launches(db.PaginationOptions{
-			Direction: dir,
-			PageSize:  10,
-			CursorID:  curID,
-		})
-		if err != nil {
-			return
-		}
+		paged, err := l.list(dir, curID, pgs)
 
 		return c.JSON(http.StatusOK, &models.LaunchItemListResult{
 			PaginationResult: paged,
@@ -78,6 +69,27 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 			},
 		})
 	}
+}
+
+func (l *launchHandler) list(dir, curID, pgs string) (paged models.PaginationResult[models.LaunchItem], err error) {
+	pg := 10
+	if n, _ := strconv.Atoi(pgs); pgs != "" {
+		pg = n
+	} else {
+		l.logger.Info("using default size 10")
+	}
+
+	if dir == "" {
+		dir = models.PageDirectionNext
+	}
+
+	paged, err = db.Launches(db.PaginationOptions{
+		Direction: dir,
+		PageSize:  pg,
+		CursorID:  curID,
+	})
+
+	return
 }
 
 func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.ObjectID, err error) {

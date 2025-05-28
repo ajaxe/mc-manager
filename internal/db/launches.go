@@ -1,6 +1,8 @@
 package db
 
 import (
+	"math"
+
 	"github.com/ajaxe/mc-manager/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -56,7 +58,7 @@ func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.Laun
 				{"launch_date", sortOrder},
 				{"_id", sortOrder},
 			}).
-			SetLimit(int64(pgOpts.PageSize)),
+			SetLimit(int64(pgOpts.PageSize * 2)),
 	})
 
 	d := make([]*models.LaunchItem, len(r))
@@ -72,24 +74,31 @@ func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.Laun
 
 	count, err := collectionCount(collectionLaunches)
 
-	prevID := ""
-	if (pgOpts.Direction == models.PageDirectionPrev && len(d) == 0) || pgOpts.CursorID == "" {
-		prevID = ""
-	} else if len(d) != 0 {
-		prevID = EncodePaginationCursor(&PaginationCursor{
-			ID:         d[0].ID,
-			LaunchDate: d[0].LaunchDate,
-		})
+	hasMore := len(d) > pgOpts.PageSize
+
+	tot := len(d)
+
+	if pgOpts.Direction == models.PageDirectionPrev {
+		d = d[len(d)-pgOpts.PageSize:]
+	} else {
+		i := int(math.Min(float64(tot), float64(pgOpts.PageSize)))
+		d = d[0:i]
 	}
 
-	nextID := ""
-	if pgOpts.Direction == models.PageDirectionNext && len(d) == 0 {
+	prevID := EncodePaginationCursor(&PaginationCursor{
+		ID:         d[0].ID,
+		LaunchDate: d[0].LaunchDate,
+	})
+	if (pgOpts.Direction == models.PageDirectionPrev && !hasMore) || (pgOpts.Direction == models.PageDirectionNext && pgOpts.CursorID == "") {
+		prevID = ""
+	}
+
+	nextID := EncodePaginationCursor(&PaginationCursor{
+		ID:         d[len(d)-1].ID,
+		LaunchDate: d[len(d)-1].LaunchDate,
+	})
+	if pgOpts.Direction == models.PageDirectionNext && !hasMore {
 		nextID = ""
-	} else if len(d) != 0 {
-		nextID = EncodePaginationCursor(&PaginationCursor{
-			ID:         d[len(d)-1].ID,
-			LaunchDate: d[len(d)-1].LaunchDate,
-		})
 	}
 
 	res = models.PaginationResult[models.LaunchItem]{
@@ -97,6 +106,7 @@ func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.Laun
 		Results: d,
 		PrevID:  prevID,
 		NextID:  nextID,
+		HasMore: hasMore,
 	}
 
 	return
