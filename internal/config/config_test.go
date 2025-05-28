@@ -1,11 +1,20 @@
 package config
 
-import "testing"
+import (
+	"fmt"
+	"os"
+	"testing"
+)
 
 func TestReadConfig_Ok(t *testing.T) {
+	token := "1234"
+	os.Setenv("APP_SERVER_AUTH_TOKEN", token)
 	config, err := loadAppConfigInternal("../../", "config")
 	if err != nil {
 		t.Fatalf("failed to get app config: %v", err)
+	}
+	if config.Server.AuthToken != token {
+		t.Fatalf("Invalid auth token. expected: %s, got: [%s]", token, config.Server.AuthToken)
 	}
 	if config.Server.Port == "" {
 		t.Fatal("Server port is empty")
@@ -54,5 +63,31 @@ func TestReadConfig_Ok(t *testing.T) {
 	}
 	if config.GameServer.Logging.Options["loki-url"] == "" {
 		t.Fatal("Game server logging loki-url option is empty")
+	}
+	os.Unsetenv("APP_SERVER_AUTH_TOKEN")
+}
+
+func TestAuthRedirectURL(t *testing.T) {
+	token := "1234"
+	url := "https://localhost-test.com"
+
+	os.Setenv("APP_SERVER_AUTH_TOKEN", token)
+	os.Setenv("APP_SERVER_AUTH_REDIRECT_URL", url)
+
+	config, err := loadAppConfigInternal("../../", "config")
+
+	if err != nil {
+		t.Fatalf("error loading config: %v", err)
+	}
+
+	expected := fmt.Sprintf("%s?token=%s", url, token)
+	u, err := config.AuthRedirectURL()
+
+	if err != nil {
+		t.Fatalf("error parsing auth config: %v", err)
+	}
+
+	if u != expected {
+		t.Fatalf("invlaid auth redirect url. expected: %s, got: [%s]", expected, u)
 	}
 }

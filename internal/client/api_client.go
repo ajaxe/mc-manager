@@ -7,6 +7,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
@@ -88,9 +89,12 @@ func httpCall(method, u string, payload interface{}) (resp *string, code int, er
 	return
 }
 
-func LoginCheck() (e error) {
-	_, _, e = httpCall("post", buildApiURL(appBaseURL(), "/login/check"), struct{}{})
-
+func LoginCheck() (u string, e error) {
+	resp := &models.ApiAuthResult{}
+	e = httpPost(buildApiURL(appBaseURL(), "/login/check"), nil, resp)
+	if e == nil {
+		u = resp.RedirectURL
+	}
 	return
 }
 func successful(code int) bool {

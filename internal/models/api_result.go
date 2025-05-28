@@ -17,3 +17,21 @@ func NewApiIDResult(id string) *ApiIDResult {
 		ID: id,
 	}
 }
+
+type ApiAuthResult struct {
+	ApiResult
+	RedirectURL string `json:"redirectUrl"`
+}
+
+func NewApiAuthResult(url ...string) *ApiAuthResult {
+	u := ""
+	if len(url) > 0 {
+		u = url[0]
+	}
+	return &ApiAuthResult{
+		ApiResult: ApiResult{
+			Success: true,
+		},
+		RedirectURL: u,
+	}
+}

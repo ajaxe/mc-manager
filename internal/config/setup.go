@@ -19,12 +19,12 @@ func LoadAppConfig() (config AppConfig) {
 
 func loadAppConfigInternal(path, name string) (config AppConfig, err error) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(`.`, `_`))
-
-	viper.AddConfigPath(path)
-	viper.SetConfigName(name)
 	viper.SetEnvPrefix("app")
 
 	viper.AutomaticEnv()
+
+	viper.AddConfigPath(path)
+	viper.SetConfigName(name)
 
 	err = viper.ReadInConfig()
 	if err != nil {

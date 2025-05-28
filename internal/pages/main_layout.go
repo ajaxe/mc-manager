@@ -13,7 +13,16 @@ type MainLayout struct {
 
 func (m *MainLayout) OnNav(ctx app.Context) {
 	ctx.Async(func() {
-		client.LoginCheck()
+		u, e := client.LoginCheck()
+
+		if e != nil {
+			app.Logf("login check error: %v", e)
+			return
+		} else if u != "" {
+			ctx.Dispatch(func(ctx app.Context) {
+				ctx.Navigate(u)
+			})
+		}
 	})
 }
 
