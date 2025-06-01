@@ -112,7 +112,7 @@ func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
 			return err
 		}
 
-		return c.NoContent(http.StatusNoContent)
+		return c.JSON(http.StatusOK, models.SuccessApiResult())
 	}
 }
 func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {

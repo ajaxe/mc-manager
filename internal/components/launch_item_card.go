@@ -35,7 +35,7 @@ func (l *LaunchItemCard) asText(s string) app.UI {
 }
 func (l *LaunchItemCard) displayField(el app.UI, css, lbl string) app.UI {
 	return app.Div().
-		Class(css + " pb-2 pb-md-0").
+		Class(css+" pb-2 pb-md-0").
 		Body(
 			app.Label().
 				Class("d-sm-inline-block d-md-none pe-3 fw-medium").
@@ -76,7 +76,6 @@ func (l *LaunchItemCard) dtDisplay() string {
 		New().
 		Call("getTimezoneOffset").
 		Int()
-	app.Logf("offset: %v", offset)
 
 	dur, e := time.ParseDuration(fmt.Sprintf("%dm", -(offset)))
 	if e != nil {
@@ -84,5 +83,5 @@ func (l *LaunchItemCard) dtDisplay() string {
 		return dt
 	}
 
-	return v.Add(dur).Format(time.DateTime)
+	return v.Add(dur).Format("Mon, Jan 2 2006 3:04 PM")
 }
