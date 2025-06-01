@@ -132,7 +132,7 @@ func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
 			return models.ErrAppGeneric(err)
 		}
 
-		return c.NoContent(http.StatusNoContent)
+		return c.JSON(http.StatusOK, models.SuccessApiResult())
 	}
 }
 
@@ -143,6 +143,10 @@ func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
 	}
 
 	w.logger.Infof("found world by id: %v", ww.ID)
+
+	if ww.IsFavorite {
+		return models.NewAppError(http.StatusBadRequest, "Cannot delete world labeled as 'Favorite'", nil)
+	}
 
 	if err := db.DeleteWorldByID(id); err != nil {
 		return models.ErrAppGeneric(err)

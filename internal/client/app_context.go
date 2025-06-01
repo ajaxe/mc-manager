@@ -1,6 +1,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
@@ -44,4 +46,19 @@ func (c AppContext) loadLaunches(v []any) {
 
 		c.SetState(StateKeyLaunches, l)
 	})
+}
+
+func (c AppContext) ShowMessage(msg string, r models.ApiResult, e error) {
+	if e == nil && r.Success {
+		c.NewActionWithValue(ActionStatusToast, StatusToastData{
+			Status:  ToastStatusSuccess,
+			Message: msg,
+		})
+	} else {
+		m := r.ErrorMessage
+		c.NewActionWithValue(ActionStatusToast, StatusToastData{
+			Status:  ToastStatusError,
+			Message: fmt.Sprintf("Error: '%s'.", m),
+		})
+	}
 }

@@ -86,14 +86,17 @@ func (w *WorldItemCard) modeSelector() app.UI {
 			OnChange: func(ctx app.Context, e app.Event) {
 				w.Item.GameMode = ctx.JSSrc().Get("value").String()
 				w.disabled = true
-				w.loadMessage = "Updating game mode."
-				//ctx.NewActionWithValue(client.ActionShowCardSpinners, true)
+				w.loadMessage = "Updating world mode."
+
 				ctx.Async(func() {
-					_, _ = client.WorldUpdate(w.Item)
+					r, e := client.WorldUpdate(w.Item)
 
 					ctx.Dispatch(func(ctx app.Context) {
 						w.disabled = false
 						w.loadMessage = ""
+
+						client.NewAppContext(ctx).
+							ShowMessage(fmt.Sprintf("Updated world: '%s' mode to '%s'", w.Item.Name, w.Item.GameMode), r, e)
 					})
 				})
 			},
@@ -157,12 +160,14 @@ func (w *WorldItemCard) setFavorite(ctx app.Context, val bool) {
 	w.disabled = true
 
 	ctx.Async(func() {
-		_, _ = client.WorldUpdate(w.Item)
+		r, e := client.WorldUpdate(w.Item)
 
 		ctx.Dispatch(func(ctx app.Context) {
 			w.disabled = false
 			w.loadMessage = ""
-			ctx.Update()
+
+			client.NewAppContext(ctx).
+				ShowMessage(fmt.Sprintf("Updated world: '%s' as favorite.", w.Item.Name), r, e)
 		})
 	})
 }

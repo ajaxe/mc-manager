@@ -9,6 +9,12 @@ type ApiIDResult struct {
 	ID string `json:"id"`
 }
 
+func SuccessApiResult() *ApiResult {
+	return &ApiResult{
+		Success: true,
+	}
+}
+
 func NewApiIDResult(id string) *ApiIDResult {
 	return &ApiIDResult{
 		ApiResult: ApiResult{

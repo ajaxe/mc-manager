@@ -21,3 +21,6 @@ func AppLaunchItemList() *LaunchItemList {
 func AppConfirmModal() *ConfirmModal {
 	return &ConfirmModal{}
 }
+func AppStatusToast() *StatusToast {
+	return &StatusToast{}
+}

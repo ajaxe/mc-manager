@@ -8,4 +8,5 @@ const (
 const (
 	ActionShowCardSpinners = "spinner-show"
 	ActionShowConfirm      = "confirm-show"
+	ActionStatusToast      = "toast-show"
 )

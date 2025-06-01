@@ -41,6 +41,7 @@ func (m *MainLayout) Render() app.UI {
 				app.Main().Body(m.Content...),
 			),
 		),
+		components.AppStatusToast(),
 	)
 }
 
