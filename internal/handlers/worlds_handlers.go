@@ -109,7 +109,7 @@ func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
 		}
 
 		if err := w.deleteWorld(id); err != nil {
-			return models.ErrAppGeneric(err)
+			return err
 		}
 
 		return c.NoContent(http.StatusNoContent)
@@ -149,7 +149,7 @@ func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
 	}
 
 	if err := db.DeleteWorldByID(id); err != nil {
-		return models.ErrAppGeneric(err)
+		return err
 	}
 
 	cfg := config.LoadAppConfig()

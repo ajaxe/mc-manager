@@ -17,8 +17,10 @@ func WorldCreate(w *models.WorldItem) (r models.ApiIDResult, err error) {
 	return
 }
 
-func WorldDelete(id string) error {
-	return httpDelete(buildApiURL(appBaseURL(), "/worlds/"+id), nil)
+func WorldDelete(id string) (r models.ApiResult, err error) {
+	r = models.ApiResult{}
+	err = httpDelete(buildApiURL(appBaseURL(), "/worlds/"+id), &r)
+	return
 }
 func WorldUpdate(w *models.WorldItem) (r models.ApiResult, err error) {
 	r = models.ApiResult{}

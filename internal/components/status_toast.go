@@ -60,5 +60,5 @@ func (s *StatusToast) showToast(ctx app.Context, a app.Action) {
 		s.message = ""
 		ctx.Update()
 		return nil
-	}), 3000)
+	}), 5000)
 }

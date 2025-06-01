@@ -138,10 +138,14 @@ func (w *WorldItemCard) performWorldLaunch(ctx app.Context, _ app.Event) {
 }
 func (w *WorldItemCard) performWorldDelete(ctx app.Context, _ app.Event) {
 	ctx.Async(func() {
-		client.WorldDelete(w.Item.ID)
+		r, e := client.WorldDelete(w.Item.ID)
 		ctx.Dispatch(func(ctx app.Context) {
-			client.NewAppContext(ctx).
-				LoadData(client.StateKeyWorlds)
+			nctx := client.NewAppContext(ctx)
+			if r.Success {
+				nctx.LoadData(client.StateKeyWorlds)
+			} else {
+				nctx.ShowErrorMessage(&r, e)
+			}
 		})
 	})
 }
@@ -167,7 +171,7 @@ func (w *WorldItemCard) setFavorite(ctx app.Context, val bool) {
 			w.loadMessage = ""
 
 			client.NewAppContext(ctx).
-				ShowMessage(fmt.Sprintf("Updated world: '%s' as favorite.", w.Item.Name), r, e)
+				ShowMessage("", r, e)
 		})
 	})
 }

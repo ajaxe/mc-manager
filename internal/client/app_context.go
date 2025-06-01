@@ -1,8 +1,6 @@
 package client
 
 import (
-	"fmt"
-
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
@@ -47,18 +45,29 @@ func (c AppContext) loadLaunches(v []any) {
 		c.SetState(StateKeyLaunches, l)
 	})
 }
-
+func (c AppContext) ShowErrorMessage(r *models.ApiResult, e error) {
+	if r == nil {
+		r = &models.ApiResult{Success: true}
+	}
+	c.ShowMessage("", *r, e)
+}
 func (c AppContext) ShowMessage(msg string, r models.ApiResult, e error) {
-	if e == nil && r.Success {
+	if e == nil && r.Success && msg != "" {
 		c.NewActionWithValue(ActionStatusToast, StatusToastData{
 			Status:  ToastStatusSuccess,
 			Message: msg,
 		})
-	} else {
+	} else if e != nil || r.Success == false {
 		m := r.ErrorMessage
+		if e != nil {
+			m = e.Error()
+		}
 		c.NewActionWithValue(ActionStatusToast, StatusToastData{
 			Status:  ToastStatusError,
-			Message: fmt.Sprintf("Error: '%s'.", m),
+			Message: m,
 		})
+	} else {
+		app.Logf("show message: unhandled case")
 	}
+	c.Update()
 }

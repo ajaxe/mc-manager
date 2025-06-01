@@ -38,7 +38,7 @@ func Start(e *echo.Echo) {
 	cfg := config.LoadAppConfig()
 	addr := fmt.Sprintf(":%v", cfg.Server.Port)
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()
 	// Start server
 	go func() {
