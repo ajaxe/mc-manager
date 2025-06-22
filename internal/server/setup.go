@@ -29,6 +29,7 @@ func NewBackendApi() *echo.Echo {
 	handlers.AddLoginHandlers(a, e.Logger)
 	handlers.AddWorldsHandlers(a, e.Logger)
 	handlers.AddLaunchHandlers(a, e.Logger)
+	handlers.AddPlaytimerHandlers(a, e.Logger)
 
 	return e
 }

@@ -15,6 +15,7 @@ import (
 const (
 	collectionWorlds   = "worlds"
 	collectionLaunches = "launches"
+	collectionPlaytimer = "playtimers"
 )
 const (
 	readTimeout  = 30 * time.Second
@@ -43,7 +44,7 @@ func NewClientWithConfig(c config.AppConfig) (*mongo.Client, error) {
 
 	opts.SetBSONOptions(&options.BSONOptions{
 		ObjectIDAsHexString: true,
-		
+
 
 	})
 
