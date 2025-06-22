@@ -19,10 +19,25 @@ func (c AppContext) LoadData(key string, v ...any) {
 		c.loadWorlds()
 	case StateKeyLaunches:
 		c.loadLaunches(v)
+	case StateKeyCurrentPlayTimer:
+		c.loadPlayTimer()
 	default: // do nothing
 	}
 }
-
+func (c AppContext) loadPlayTimer() {
+	c.Async(func() {
+		d, _ := PlayTimer()
+		var s *models.PlayTimerItem
+		if len(d.Data) > 0 {
+			s = d.Data[0]
+		} else {
+			s = &models.PlayTimerItem{
+				IsActive: false,
+			}
+		}
+		c.SetState(StateKeyCurrentPlayTimer, s)
+	})
+}
 func (c AppContext) loadWorlds() {
 	c.Async(func() {
 		l, _ := WorldsList()

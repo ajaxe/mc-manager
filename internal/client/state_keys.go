@@ -1,8 +1,9 @@
 package client
 
 const (
-	StateKeyWorlds   = "worlds"
-	StateKeyLaunches = "launches"
+	StateKeyWorlds           = "worlds"
+	StateKeyLaunches         = "launches"
+	StateKeyCurrentPlayTimer = "current-playtimer"
 )
 
 const (

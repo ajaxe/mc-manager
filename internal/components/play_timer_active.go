@@ -1,9 +1,14 @@
 package components
 
-import "github.com/maxence-charriere/go-app/v10/pkg/app"
+import (
+	"github.com/ajaxe/mc-manager/internal/client"
+	"github.com/ajaxe/mc-manager/internal/models"
+	"github.com/maxence-charriere/go-app/v10/pkg/app"
+)
 
 type PlayTimerActive struct {
 	app.Compo
+	ActiveTimer *models.PlayTimerItem
 }
 
 func (pt *PlayTimerActive) Render() app.UI {
@@ -13,13 +18,22 @@ func (pt *PlayTimerActive) Render() app.UI {
 				app.Div().Class("h5 card-title").Text("Active Play Timer"),
 			),
 			app.Div().Class("p-2 col-sm-12 col-md-6").Body(
-				app.Div().Class("form-text").ID("inp-min-help").
-					Text("Enter the number of minutes to set the timer."),
+				app.Div().Body(
+					app.Div().Class("form-text").
+						Text("Play time ends at:"),
+					app.Div().Class("form-text").
+						Text(pt.formatDate(pt.ActiveTimer.EndDate)),
+				),
+				app.Div().Class("mt-2").Body(
+					app.Button().Class("btn btn-primary").Text("Stop Timer"),
+				),
 			),
 			app.Div().Class("p-2 col-sm-12 col-md-6").Body(
-				app.Button().Class("btn btn-primary").Text("Start Timer"),
-				app.Button().Class("btn btn-secondary ms-2").Text("Clear Timer"),
+				&PlayTimerCountDown{Minutes: pt.ActiveTimer.Minutes},
 			),
 		),
 	)
+}
+func (pt *PlayTimerActive) formatDate(s string) string {
+	return client.BrowserDateDisplay(s)
 }

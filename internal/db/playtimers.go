@@ -6,6 +6,7 @@ import (
 
 	"github.com/ajaxe/mc-manager/internal/models"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 // ActivePlayTimer returns play timer item with is_active set to true.
@@ -21,9 +22,15 @@ func ActivePlayTimer() (p *models.PlayTimerItem, err error) {
 	defer cancel()
 
 	err = c.Database(clientInstance.DbName).
-		Collection(collectionWorlds).
+		Collection(collectionPlaytimer).
 		FindOne(ctx, f).
 		Decode(&p)
+
+	if mongo.ErrNoDocuments == err {
+		err = nil // No active play timer found, return nil
+		p = nil
+		return
+	}
 
 	return
 }

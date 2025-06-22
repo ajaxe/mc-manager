@@ -28,8 +28,16 @@ type playTimerHandler struct {
 func (p *playTimerHandler) PlayTimer() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		p, err := db.ActivePlayTimer()
+		if err != nil {
+			err = models.ErrAppGeneric(err)
+			return
+		}
+		d := []*models.PlayTimerItem{}
+		if p != nil {
+			d = append(d, p)
+		}
 		return c.JSON(http.StatusOK, &models.PlayTimerListResult{
-			Data: []*models.PlayTimerItem{p},
+			Data: d,
 			ApiResult: models.ApiResult{
 				Success: true,
 			},

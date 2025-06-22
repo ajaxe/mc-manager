@@ -2,8 +2,8 @@ package components
 
 import (
 	"fmt"
-	"time"
 
+	"github.com/ajaxe/mc-manager/internal/client"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
@@ -63,25 +63,5 @@ func (l *LaunchItemCard) statusIcon() app.UI {
 		)
 }
 func (l *LaunchItemCard) dtDisplay() string {
-	dt := l.Item.LaunchDate
-	v, e := time.Parse(time.RFC3339, dt)
-
-	if e != nil {
-		app.Logf("time parse error: %v", e)
-		return dt
-	}
-
-	offset := app.Window().
-		Get("Date").
-		New().
-		Call("getTimezoneOffset").
-		Int()
-
-	dur, e := time.ParseDuration(fmt.Sprintf("%dm", -(offset)))
-	if e != nil {
-		app.Logf("time duration parse error: %v", e)
-		return dt
-	}
-
-	return v.Add(dur).Format("Mon, Jan 2 2006 3:04 PM")
+	return client.BrowserDateDisplay(l.Item.LaunchDate)
 }
