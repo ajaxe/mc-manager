@@ -49,9 +49,14 @@ func (s *ServiceConfig) defaultConfig(w *models.WorldItem) container.Config {
 	}
 
 	return container.Config{
-		Image:  s.Config.GameServer.ImageName,
-		Env:    env,
-		Labels: labels,
+		Image:        s.Config.GameServer.ImageName,
+		Env:          env,
+		Labels:       labels,
+		AttachStdin:  true,
+		AttachStdout: true,
+		AttachStderr: true,
+		Tty:          true,
+		OpenStdin:    true,
 	}
 }
 

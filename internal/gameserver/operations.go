@@ -154,7 +154,7 @@ func (g *GameServerOperations) createGameServerInternal(w *models.WorldItem, cli
 
 func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *client.Client) (err error) {
 	g.Logger.Infof("stopping container:%s", c.ContainerID)
-	err = cli.ContainerStop(context.Background(), c.ContainerID, container.StopOptions{})
+	err = sendStopCommand(context.Background(), c.ContainerID, cli)
 
 	if err != nil {
 		return err
