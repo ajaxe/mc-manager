@@ -24,3 +24,6 @@ func AppConfirmModal() *ConfirmModal {
 func AppStatusToast() *StatusToast {
 	return &StatusToast{}
 }
+func AppPlayTimer() *PlayTimer {
+	return &PlayTimer{}
+}

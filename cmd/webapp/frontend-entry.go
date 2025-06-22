@@ -14,6 +14,7 @@ func Frontend() {
 	app.Route("/worlds", func() app.Composer { return &pages.HomePage{} })
 	app.Route("/worlds/add", func() app.Composer { return &pages.WorldAddPage{} })
 	app.Route("/launches", func() app.Composer { return &pages.WorldLaunchPage{} })
+	app.Route("/playtimer", func() app.Composer { return &pages.PlayTimerPage{} })
 	app.Route("/setup", func() app.Composer { return &pages.SetupPage{} })
 }
 

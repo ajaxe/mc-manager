@@ -32,6 +32,7 @@ func (s *SidebarMenu) Render() app.UI {
 				s.navLink(s.mapping["/worlds"]),
 				s.navLink(s.mapping["/worlds/add"]),
 				s.navLink(s.mapping["/launches"]),
+				s.navLink(s.mapping["/playtimer"]),
 			),
 			app.Ul().Class("p-2 nav flex-column").Body(
 				s.navLink(s.mapping["/setup"]),
@@ -58,6 +59,12 @@ func (s *SidebarMenu) initMapping() {
 			name:  "Launches",
 			path:  "/launches",
 			icon:  "bi-rocket-takeoff",
+		},
+		"/playtimer": {
+			index: 2,
+			name:  "Play Timer",
+			path:  "/playtimer",
+			icon:  "bi-hourglass-split",
 		},
 		"/setup": {
 			index: 3,
