@@ -8,21 +8,21 @@ import (
 
 type WorldSelectBtn struct {
 	app.Compo
-	active   bool
+	Active   bool
 	OnSelect app.EventHandler
 }
 
 func (w *WorldSelectBtn) Render() app.UI {
 	c := "text-success"
 	ico := "bi-check2-circle"
-	if !w.active {
+	if !w.Active {
 		c = "text-secondary"
 		ico = "bi-circle"
 	}
 	return app.Span().
 		Class("float-end rounded-pill ms-1").
 		Body(
-			app.If(w.active, func() app.UI {
+			app.If(w.Active, func() app.UI {
 				return app.I().
 					Style("font-size", "1.8rem").
 					Class(fmt.Sprintf("bi %s %s", ico, c))
@@ -40,7 +40,7 @@ func (w *WorldSelectBtn) Render() app.UI {
 		)
 }
 func (w *WorldSelectBtn) onClick(ctx app.Context, e app.Event) {
-	if w.OnSelect != nil && !w.active {
+	if w.OnSelect != nil && !w.Active {
 		w.OnSelect(ctx, e)
 	}
 }

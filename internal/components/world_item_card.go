@@ -42,7 +42,7 @@ func (w *WorldItemCard) Render() app.UI {
 						},
 						app.Text(w.Item.Name+"  "),
 						&WorldSelectBtn{
-							active:   w.Item.IsActive,
+							Active:   w.Item.IsActive,
 							OnSelect: w.performWorldLaunch,
 						},
 						&WorldDeleteBtn{
