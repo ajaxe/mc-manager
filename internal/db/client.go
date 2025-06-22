@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	collectionWorlds   = "worlds"
-	collectionLaunches = "launches"
+	collectionWorlds    = "worlds"
+	collectionLaunches  = "launches"
 	collectionPlaytimer = "playtimers"
 )
 const (
@@ -44,8 +44,6 @@ func NewClientWithConfig(c config.AppConfig) (*mongo.Client, error) {
 
 	opts.SetBSONOptions(&options.BSONOptions{
 		ObjectIDAsHexString: true,
-
-
 	})
 
 	client, err := mongo.Connect(opts) //set Decoder.ObjectIDAsHexString

@@ -24,7 +24,7 @@ func (w *WorldItemEdit) Render() app.UI {
 							ID:          "world-name",
 							Placeholder: "World name",
 							Value:       w.WorldItem.Name,
-							BindTo: 	&w.WorldItem.Name,
+							BindTo:      &w.WorldItem.Name,
 						},
 						&FormLabel{
 							For:   "world-name",
@@ -39,7 +39,7 @@ func (w *WorldItemEdit) Render() app.UI {
 							ID:          "world-desc",
 							Placeholder: "World description",
 							Value:       w.WorldItem.Description,
-							BindTo: 	&w.WorldItem.Description,
+							BindTo:      &w.WorldItem.Description,
 						},
 						&FormLabel{
 							For:   "world-desc",
@@ -54,7 +54,7 @@ func (w *WorldItemEdit) Render() app.UI {
 							ID:          "world-seed",
 							Placeholder: "World seed",
 							Value:       w.WorldItem.WorldSeed,
-							BindTo: 	&w.WorldItem.WorldSeed,
+							BindTo:      &w.WorldItem.WorldSeed,
 						},
 						&FormLabel{
 							For:   "world-seed",
