@@ -20,7 +20,8 @@ import (
 
 func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
 	h := &worldsHandler{
-		logger: l,
+		logger:      l,
+		gameService: NewGameService(l),
 	}
 
 	e.GET("/worlds", h.Worlds())
@@ -30,7 +31,8 @@ func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
 }
 
 type worldsHandler struct {
-	logger echo.Logger
+	logger      echo.Logger
+	gameService GameService
 }
 
 func (w *worldsHandler) Worlds() echo.HandlerFunc {
@@ -40,7 +42,7 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 			return
 		}
 
-		names, err := NewGameService(w.logger).serverDetails()
+		names, err := w.gameService.serverDetails()
 		if err != nil {
 			return models.ErrAppGeneric(err)
 		}

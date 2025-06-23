@@ -10,17 +10,23 @@ import (
 )
 
 type gameService struct {
-	op *gameserver.GameServerOperations
+	op      *gameserver.GameServerOperations
+	command *gameserver.ServerCommand
 }
 
 func NewGameService(logger echo.Logger) GameService {
-	return &gameService{
-		op: &gameserver.GameServerOperations{
+	ops := &gameserver.GameServerOperations{
+		Logger: logger,
+		Config: &gameserver.ServiceConfig{
 			Logger: logger,
-			Config: &gameserver.ServiceConfig{
-				Logger: logger,
-				Config: config.LoadAppConfig(),
-			},
+			Config: config.LoadAppConfig(),
+		},
+	}
+	return &gameService{
+		op: ops,
+		command: &gameserver.ServerCommand{
+			Logger:     logger,
+			GameServer: ops,
 		},
 	}
 }
@@ -35,6 +41,10 @@ func (g *gameService) createGameServer(w *models.WorldItem) (err error) {
 }
 func (g *gameService) stopAllInstances() error {
 	return g.op.StopAll()
+}
+func (g *gameService) sendMessageToServer(message string) (err error) {
+	err = g.command.Message(message)
+	return
 }
 
 func toContainerName(s string) string {

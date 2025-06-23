@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
@@ -12,7 +13,8 @@ import (
 
 func AddPlaytimerHandlers(e *echo.Group, l echo.Logger) {
 	h := &playTimerHandler{
-		logger: l,
+		logger:      l,
+		gameService: NewGameService(l),
 	}
 
 	e.GET("/playtimer", h.PlayTimer())
@@ -21,7 +23,8 @@ func AddPlaytimerHandlers(e *echo.Group, l echo.Logger) {
 }
 
 type playTimerHandler struct {
-	logger echo.Logger
+	logger      echo.Logger
+	gameService GameService
 }
 
 // PlayTimer returns a GET handler which responds with active play timer item.
@@ -75,7 +78,7 @@ func (p *playTimerHandler) DeletePlayTimer() echo.HandlerFunc {
 				return
 			}
 		}
-		return c.NoContent(http.StatusNoContent)
+		return c.JSON(http.StatusOK, models.SuccessApiResult())
 	}
 }
 
@@ -111,6 +114,13 @@ func (p *playTimerHandler) create(d *models.PlayTimerItem) (id bson.ObjectID, er
 	id, err = db.InsertPlayTimer(d)
 	if err != nil {
 		err = models.ErrAppGeneric(err)
+	}
+
+	if err == nil {
+		e := p.gameService.sendMessageToServer(fmt.Sprintf("A new play timer has been set for %d minutes.", d.Minutes))
+		if e != nil {
+			p.logger.Warnf("Failed to send message to server: %v", e)
+		}
 	}
 
 	return

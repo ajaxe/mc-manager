@@ -26,3 +26,6 @@ func (g *gameService) stopAllInstances() error {
 func toContainerName(s string) string {
 	return s
 }
+func (g *gameService) sendMessageToServer(message string) (err error) {
+	return nil
+}

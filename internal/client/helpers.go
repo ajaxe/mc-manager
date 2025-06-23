@@ -6,6 +6,7 @@ import (
 
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
+
 // BrowserDateDisplay converts a date string in RFC3339 format to a browser-friendly display format.
 func BrowserDateDisplay(dt string) string {
 	v, e := time.Parse(time.RFC3339, dt)

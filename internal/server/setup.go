@@ -17,7 +17,7 @@ import (
 
 func NewBackendApi() *echo.Echo {
 	e := echo.New()
-	e.Logger.SetLevel(elog.INFO)
+	e.Logger.SetLevel(elog.DEBUG)
 	e.HTTPErrorHandler = handlers.AppErrorHandler()
 
 	e.Use(middleware.Logger())

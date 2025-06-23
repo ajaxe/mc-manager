@@ -6,4 +6,5 @@ type GameService interface {
 	createGameServer(w *models.WorldItem) error
 	serverDetails() ([]*models.GameServerDetail, error)
 	stopAllInstances() error
+	sendMessageToServer(message string) error
 }

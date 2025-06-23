@@ -14,7 +14,8 @@ import (
 
 func AddLaunchHandlers(e *echo.Group, l echo.Logger) {
 	h := &launchHandler{
-		logger: l,
+		logger:      l,
+		gameService: NewGameService(l),
 	}
 
 	e.GET("/launches", h.Launches())
@@ -23,7 +24,8 @@ func AddLaunchHandlers(e *echo.Group, l echo.Logger) {
 }
 
 type launchHandler struct {
-	logger echo.Logger
+	logger      echo.Logger
+	gameService GameService
 }
 
 func (l *launchHandler) DeleteLaunch(s string) echo.HandlerFunc {
@@ -103,7 +105,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 		return
 	}
 
-	gameService := NewGameService(l.logger)
+	gameService := l.gameService
 
 	existing, err := gameService.serverDetails()
 	if err != nil {

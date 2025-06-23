@@ -25,7 +25,17 @@ func (pt *PlayTimerActive) Render() app.UI {
 						Text(pt.formatDate(pt.ActiveTimer.EndDate)),
 				),
 				app.Div().Class("mt-2").Body(
-					app.Button().Class("btn btn-primary").Text("Stop Timer"),
+					app.Button().Class("btn btn-primary").Text("Stop Timer").
+						OnClick(func(ctx app.Context, e app.Event) {
+							ctx.Async(func() {
+								e := client.StopPlaytimer()
+								ctx.Dispatch(func(ctx app.Context) {
+									nctx := client.NewAppContext(ctx)
+									nctx.ShowErrorMessage(nil, e)
+									nctx.LoadData(client.StateKeyCurrentPlayTimer)
+								})
+							})
+						}),
 				),
 			),
 			app.Div().Class("p-2 col-sm-12 col-md-6").Body(

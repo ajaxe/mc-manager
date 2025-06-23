@@ -2,53 +2,44 @@ package gameserver
 
 import (
 	"context"
-	"fmt"
 
-	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 )
 
 type ServerCommand struct {
-	Logger echo.Logger
+	Logger     echo.Logger
+	GameServer *GameServerOperations
 }
 
-func (sc *ServerCommand) Message(m string) error {
-	return nil
-}
-
-func defaultAttachOptions() container.AttachOptions {
-	return container.AttachOptions{
-		Stream: false,
-		Stdin:  true,
-		Stdout: true,
-		Stderr: true,
-		Logs:   false,
-	}
-}
-
-// sendChatMessage executes "say" command to send a message to all playes on the game server.
-func sendChatMessage(m string, ctx context.Context, containerId string, cli *client.Client) (err error) {
-	r, err := cli.ContainerAttach(ctx, containerId, defaultAttachOptions())
+func (sc *ServerCommand) Message(m string) (err error) {
+	cli, err := defaultDockerCli(sc.Logger)
 	if err != nil {
 		return
 	}
-	defer r.Close()
+	defer cli.Close()
 
-	_, err = r.Conn.Write([]byte(fmt.Sprintf("say %s", m)))
+	containers, err := sc.GameServer.listContainers(cli)
 
-	return err
-}
-
-// sendStopCommand executes "stop" command to gracefully stop the game server.
-func sendStopCommand(ctx context.Context, containerId string, cli *client.Client) (err error) {
-	r, err := cli.ContainerAttach(ctx, containerId, defaultAttachOptions())
-	if err != nil {
-		return
+	if len(containers) == 0 {
+		sc.Logger.Warnf("no active game server instances found to send message: %s", m)
 	}
-	defer r.Close()
 
-	_, err = r.Conn.Write([]byte("stop"))
+	for _, r := range containers {
+		e := sendChatMessage(chatMessageOptions{
+			gameserverConsoleOptions: gameserverConsoleOptions{
+				ctx:         context.Background(),
+				logger:      sc.Logger,
+				cli:         cli,
+				containerId: r.ID,
+			},
+			message: m,
+		})
+		if e != nil {
+			sc.Logger.Errorf("failed to send message to %s: %v", r.ID, e)
+		} else {
+			sc.Logger.Infof("message sent to %s: %s", r.ID, m)
+		}
+	}
 
-	return err
+	return
 }
