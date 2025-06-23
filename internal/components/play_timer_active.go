@@ -39,7 +39,7 @@ func (pt *PlayTimerActive) Render() app.UI {
 				),
 			),
 			app.Div().Class("p-2 col-sm-12 col-md-6").Body(
-				&PlayTimerCountDown{Minutes: pt.ActiveTimer.Minutes},
+				&PlayTimerCountDown{EndDate: pt.ActiveTimer.EndDate},
 			),
 		),
 	)
