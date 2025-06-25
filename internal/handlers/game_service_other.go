@@ -10,24 +10,14 @@ import (
 )
 
 type gameService struct {
-	op      *gameserver.GameServerOperations
-	command *gameserver.ServerCommand
+	op *gameserver.GameServerOperations
 }
 
 func NewGameService(logger echo.Logger) GameService {
-	ops := &gameserver.GameServerOperations{
-		Logger: logger,
-		Config: &gameserver.ServiceConfig{
-			Logger: logger,
-			Config: config.LoadAppConfig(),
-		},
-	}
+	ops := gameserver.NewGameServerOperations(logger, config.LoadAppConfig())
+
 	return &gameService{
 		op: ops,
-		command: &gameserver.ServerCommand{
-			Logger:     logger,
-			GameServer: ops,
-		},
 	}
 }
 func (g *gameService) serverDetails() (n []*models.GameServerDetail, err error) {
@@ -43,7 +33,7 @@ func (g *gameService) stopAllInstances() error {
 	return g.op.StopAll()
 }
 func (g *gameService) sendMessageToServer(message string) (err error) {
-	err = g.command.Message(message)
+	err = g.op.Message(message)
 	return
 }
 

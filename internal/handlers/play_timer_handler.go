@@ -6,6 +6,7 @@ import (
 
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/http"
+	"github.com/ajaxe/mc-manager/internal/job"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -122,6 +123,8 @@ func (p *playTimerHandler) create(d *models.PlayTimerItem) (id bson.ObjectID, er
 			p.logger.Warnf("Failed to send message to server: %v", e)
 		}
 	}
+
+	job.QueueJob(d)
 
 	return
 }

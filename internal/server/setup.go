@@ -10,6 +10,7 @@ import (
 
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/handlers"
+	"github.com/ajaxe/mc-manager/internal/job"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	elog "github.com/labstack/gommon/log"
@@ -54,6 +55,10 @@ func Start(e *echo.Echo) {
 		if err != nil && err != http.ErrServerClosed {
 			e.Logger.Fatalf("shutting down the server: %v", err)
 		}
+	}()
+
+	go func() {
+		job.StartMonitor(ctx, e.Logger)
 	}()
 
 	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds.

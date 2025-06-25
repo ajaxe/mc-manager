@@ -56,7 +56,7 @@ func sendStopCommand(opts gameserverConsoleOptions) (err error) {
 	}
 	defer r.Close()
 
-	_, err = r.Conn.Write([]byte("stop"))
+	_, err = r.Conn.Write([]byte("stop\n"))
 
 	return err
 }

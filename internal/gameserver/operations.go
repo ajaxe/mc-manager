@@ -5,12 +5,23 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/labstack/echo/v4"
 )
+
+func NewGameServerOperations(l echo.Logger, cfg config.AppConfig) *GameServerOperations {
+	return &GameServerOperations{
+		Logger: l,
+		Config: &ServiceConfig{
+			Logger: l,
+			Config: cfg,
+		},
+	}
+}
 
 type GameServerOperations struct {
 	Logger echo.Logger
@@ -175,6 +186,39 @@ func dockerCli(opts []client.Opt) (cli *client.Client, err error) {
 	o := append(opts, client.WithAPIVersionNegotiation())
 
 	cli, err = client.NewClientWithOpts(o...)
+
+	return
+}
+
+func (g *GameServerOperations) Message(m string) (err error) {
+	cli, err := defaultDockerCli(g.Logger)
+	if err != nil {
+		return
+	}
+	defer cli.Close()
+
+	containers, err := g.listContainers(cli)
+
+	if len(containers) == 0 {
+		g.Logger.Warnf("no active game server instances found to send message: %s", m)
+	}
+
+	for _, r := range containers {
+		e := sendChatMessage(chatMessageOptions{
+			gameserverConsoleOptions: gameserverConsoleOptions{
+				ctx:         context.Background(),
+				logger:      g.Logger,
+				cli:         cli,
+				containerId: r.ID,
+			},
+			message: m,
+		})
+		if e != nil {
+			g.Logger.Errorf("failed to send message to %s: %v", r.ID, e)
+		} else {
+			g.Logger.Infof("message sent to %s: %s", r.ID, m)
+		}
+	}
 
 	return
 }
