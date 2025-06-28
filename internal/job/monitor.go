@@ -21,6 +21,10 @@ func QueueJob(item *models.PlayTimerItem) {
 	inputCh <- item
 }
 
+func StopCurrentPlayTimer() {
+	currentObserver.stop()
+}
+
 func StartMonitor(ctx context.Context, l echo.Logger) {
 	currentObserver.logger = l
 	i, err := db.ActivePlayTimer()

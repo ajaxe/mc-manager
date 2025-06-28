@@ -78,6 +78,7 @@ func (p *playTimerHandler) DeletePlayTimer() echo.HandlerFunc {
 				err = models.ErrAppGeneric(err)
 				return
 			}
+			job.StopCurrentPlayTimer()
 		}
 		return c.JSON(http.StatusOK, models.SuccessApiResult())
 	}
