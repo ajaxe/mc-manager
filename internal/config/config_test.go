@@ -70,9 +70,11 @@ func TestReadConfig_Ok(t *testing.T) {
 func TestAuthRedirectURL(t *testing.T) {
 	token := "1234"
 	url := "https://localhost-test.com"
+	path := "/"
 
 	os.Setenv("APP_SERVER_AUTH_TOKEN", token)
-	os.Setenv("APP_SERVER_AUTH_REDIRECT_URL", url)
+	os.Setenv("APP_SERVER_AUTH_SERVER_URL", url)
+	os.Setenv("APP_SERVER_AUTH_REDIRECT_PATH", path)
 
 	config, err := loadAppConfigInternal("../../", "config")
 
@@ -80,7 +82,7 @@ func TestAuthRedirectURL(t *testing.T) {
 		t.Fatalf("error loading config: %v", err)
 	}
 
-	expected := fmt.Sprintf("%s?token=%s", url, token)
+	expected := fmt.Sprintf("%s%s?token=%s", url, path, token)
 	u, err := config.AuthRedirectURL()
 
 	if err != nil {
@@ -90,4 +92,8 @@ func TestAuthRedirectURL(t *testing.T) {
 	if u != expected {
 		t.Fatalf("invlaid auth redirect url. expected: %s, got: [%s]", expected, u)
 	}
+
+	os.Unsetenv("APP_SERVER_AUTH_TOKEN")
+	os.Unsetenv("APP_SERVER_AUTH_SERVER_URL")
+	os.Unsetenv("APP_SERVER_AUTH_REDIRECT_PATH")
 }

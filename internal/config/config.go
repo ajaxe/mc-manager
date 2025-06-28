@@ -18,8 +18,11 @@ type AppConfig struct {
 		// dockerhost URL when server running on windows.
 		DockerHostURL string `mapstructure:"docker_host_url"`
 
+		// Authentication redirect host URL when hosted behind reverse proxy.
+		AuthServerURL string `mapstructure:"auth_server_url"`
+
 		// Authentication redirect URL when hosted behind reverse proxy.
-		AuthRedirectURL string `mapstructure:"auth_redirect_url"`
+		AuthRedirectPath string `mapstructure:"auth_redirect_path"`
 
 		// Auth cookie name to check for authenticated session.
 		AuthCookieName string `mapstructure:"auth_cookie_name"`
@@ -53,11 +56,11 @@ func (a *AppConfig) UseTLS() bool {
 // AuthRedirectURL combines config.Server.AuthRedirectURL & config.Server.AuthToken
 // to returns authentication redirect URL.
 func (a *AppConfig) AuthRedirectURL() (u string, err error) {
-	if a.Server.AuthRedirectURL == "" || a.Server.AuthToken == "" {
+	if a.Server.AuthServerURL == "" || a.Server.AuthRedirectPath == "" || a.Server.AuthToken == "" {
 		u = ""
 		return
 	}
-	p, err := url.Parse(a.Server.AuthRedirectURL)
+	p, err := url.Parse(a.Server.AuthServerURL + a.Server.AuthRedirectPath)
 	if err != nil {
 		return
 	}

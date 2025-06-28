@@ -22,7 +22,7 @@ type loginHandler struct {
 func (l *loginHandler) check() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
 		cfg := config.LoadAppConfig()
-		if cfg.Server.AuthRedirectURL == "" {
+		if cfg.Server.AuthServerURL == "" {
 			return c.JSON(http.StatusOK, models.NewApiAuthResult())
 		}
 
