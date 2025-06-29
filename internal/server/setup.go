@@ -11,6 +11,7 @@ import (
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/handlers"
 	"github.com/ajaxe/mc-manager/internal/job"
+	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	elog "github.com/labstack/gommon/log"
@@ -20,6 +21,13 @@ func NewBackendApi() *echo.Echo {
 	e := echo.New()
 	e.Logger.SetLevel(elog.DEBUG)
 	e.HTTPErrorHandler = handlers.AppErrorHandler()
+
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			cc := models.NewAppContext(c, e.Logger)
+			return next(cc)
+		}
+	})
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())

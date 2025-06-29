@@ -72,6 +72,7 @@ func TestAuthRedirectURL(t *testing.T) {
 	url := "https://localhost-test.com"
 	path := "/"
 
+	os.Setenv("APP_SERVER_AUTH_SERVER_ENABLED", "true")
 	os.Setenv("APP_SERVER_AUTH_TOKEN", token)
 	os.Setenv("APP_SERVER_AUTH_SERVER_URL", url)
 	os.Setenv("APP_SERVER_AUTH_REDIRECT_PATH", path)
@@ -90,10 +91,41 @@ func TestAuthRedirectURL(t *testing.T) {
 	}
 
 	if u != expected {
-		t.Fatalf("invlaid auth redirect url. expected: %s, got: [%s]", expected, u)
+		t.Fatalf("invalid auth redirect url. expected: %s, got: [%s]", expected, u)
 	}
 
+	os.Unsetenv("APP_SERVER_AUTH_SERVER_ENABLED")
 	os.Unsetenv("APP_SERVER_AUTH_TOKEN")
 	os.Unsetenv("APP_SERVER_AUTH_SERVER_URL")
 	os.Unsetenv("APP_SERVER_AUTH_REDIRECT_PATH")
+}
+
+func TestAuthIntrospectURL(t *testing.T) {
+	url := "https://localhost-test.com"
+	path := "/introspect"
+
+	os.Setenv("APP_SERVER_AUTH_SERVER_ENABLED", "true")
+	os.Setenv("APP_SERVER_AUTH_SERVER_URL", url)
+	os.Setenv("APP_SERVER_AUTH_INTROSPECT_PATH", path)
+
+	config, err := loadAppConfigInternal("../../", "config")
+
+	if err != nil {
+		t.Fatalf("error loading config: %v", err)
+	}
+
+	expected := fmt.Sprintf("%s%s", url, path)
+	u, err := config.AuthIntrospectURL()
+
+	if err != nil {
+		t.Fatalf("error parsing auth config: %v", err)
+	}
+
+	if u != expected {
+		t.Fatalf("invalid auth introspect url. expected: %s, got: [%s]", expected, u)
+	}
+
+	os.Unsetenv("APP_SERVER_AUTH_SERVER_ENABLED")
+	os.Unsetenv("APP_SERVER_AUTH_SERVER_URL")
+	os.Unsetenv("APP_SERVER_AUTH_INTROSPECT_PATH")
 }

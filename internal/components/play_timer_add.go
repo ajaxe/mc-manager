@@ -39,10 +39,15 @@ func (pt *PlayTimerAdd) Render() app.UI {
 					OnClick(func(ctx app.Context, e app.Event) {
 						ctx.Async(func() {
 							minutes, _ := strconv.Atoi(pt.valueMinutes)
-							_ = client.StartPlaytimer(&models.PlayTimerItem{
+							e := client.StartPlaytimer(&models.PlayTimerItem{
 								Minutes: minutes,
 							})
-							client.NewAppContext(ctx).LoadData(client.StateKeyCurrentPlayTimer)
+							if e != nil {
+								client.NewAppContext(ctx).
+									ShowErrorMessage(nil, e)
+							} else {
+								client.NewAppContext(ctx).LoadData(client.StateKeyCurrentPlayTimer)
+							}
 						})
 					}),
 				app.Button().Class("btn btn-secondary ms-2").Text("Clear Timer").

@@ -2,9 +2,11 @@ package config
 
 import (
 	"net/url"
+	"strings"
 )
 
 type AppConfig struct {
+	IsDev  bool `mapstructure:"is_dev"`
 	Server struct {
 		// port on which the server listens for incoming connections.
 		Port string `mapstructure:"port"`
@@ -18,17 +20,23 @@ type AppConfig struct {
 		// dockerhost URL when server running on windows.
 		DockerHostURL string `mapstructure:"docker_host_url"`
 
+		AuthServerEnabled bool `mapstructure:"auth_server_enabled"`
+
 		// Authentication redirect host URL when hosted behind reverse proxy.
 		AuthServerURL string `mapstructure:"auth_server_url"`
 
 		// Authentication redirect URL when hosted behind reverse proxy.
 		AuthRedirectPath string `mapstructure:"auth_redirect_path"`
 
+		AuthIntrospectPath string `mapstructure:"auth_introspect_path"`
+
 		// Auth cookie name to check for authenticated session.
 		AuthCookieName string `mapstructure:"auth_cookie_name"`
 
 		// Token used to identify service during authentication
 		AuthToken string `mapstructure:"auth_token"`
+
+		Admins string `mapstructure:"admins"`
 	} `mapstructure:"server"`
 	Database struct {
 		ConnectionURI string `mapstructure:"connection_uri"`
@@ -56,7 +64,7 @@ func (a *AppConfig) UseTLS() bool {
 // AuthRedirectURL combines config.Server.AuthRedirectURL & config.Server.AuthToken
 // to returns authentication redirect URL.
 func (a *AppConfig) AuthRedirectURL() (u string, err error) {
-	if a.Server.AuthServerURL == "" || a.Server.AuthRedirectPath == "" || a.Server.AuthToken == "" {
+	if a.Server.AuthServerEnabled == false {
 		u = ""
 		return
 	}
@@ -71,4 +79,20 @@ func (a *AppConfig) AuthRedirectURL() (u string, err error) {
 
 	u = p.String()
 	return
+}
+
+func (a *AppConfig) AuthIntrospectURL() (u string, err error) {
+	if a.Server.AuthServerEnabled == false {
+		u = ""
+		return
+	}
+	p, err := url.Parse(a.Server.AuthServerURL + a.Server.AuthIntrospectPath)
+	if err != nil {
+		return
+	}
+	u = p.String()
+	return
+}
+func (a *AppConfig) AdminUsers() []string {
+	return strings.Split(a.Server.Admins, ",")
 }

@@ -21,9 +21,10 @@ type loginHandler struct {
 
 func (l *loginHandler) check() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
+		cc := c.(*models.AppContext)
 		cfg := config.LoadAppConfig()
-		if cfg.Server.AuthServerURL == "" {
-			return c.JSON(http.StatusOK, models.NewApiAuthResult())
+		if cfg.Server.AuthServerEnabled == false {
+			return cc.JSON(http.StatusOK, models.NewApiAuthResult())
 		}
 
 		u, err := cfg.AuthRedirectURL()
@@ -32,19 +33,16 @@ func (l *loginHandler) check() echo.HandlerFunc {
 			return
 		}
 
-		ck := c.Request().Cookies()
-		for _, c := range ck {
-			if c.Name == cfg.Server.AuthCookieName {
-				u = ""
-				l.logger.Infof("authenticated session detected, no need to redirect.")
-				break
-			}
+		ck := cc.AuthCookieValue()
+		if ck != "" {
+			u = ""
+			l.logger.Infof("authenticated session detected, no need to redirect.")
 		}
 
 		if u != "" {
 			l.logger.Infof("un-authenticated session detected, will redirect to [%s].", u)
 		}
 
-		return c.JSON(http.StatusOK, models.NewApiAuthResult(u))
+		return cc.JSON(http.StatusOK, models.NewApiAuthResult(u))
 	}
 }

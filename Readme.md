@@ -10,22 +10,22 @@ It also includes a "Play Timer" feature, perfect for parents or server admins wh
 
 ## Features
 
-*   **Web-based UI**: Manage your server from anywhere using a modern, responsive web interface built with `go-app` (Go compiled to WebAssembly).
-*   **Multi-world Management**: Create and store configurations for multiple worlds. The application ensures that only one Minecraft server Docker container is active at a time, allowing you to seamlessly switch between your defined worlds with a single click.
-*   **Docker Integration**: Runs Minecraft servers in isolated Docker containers for better security and resource management.
-*   **Dynamic Configuration**: Modify world settings like Game Mode (`survival`, `creative`, etc.) directly from the UI.
-*   **Play Timer**: Set a time limit for a gameplay session. The server will automatically stop, and players will receive countdown notifications.
-*   **Favorite Worlds**: Mark your most-used worlds for quick access.
-*   **Secure**: Supports integration with an authentication proxy for secure access.
-*   **PWA Support**: The frontend is a Progressive Web App that can be "installed" on your desktop or mobile device and notifies you when updates are available.
+- **Web-based UI**: Manage your server from anywhere using a modern, responsive web interface built with `go-app` (Go compiled to WebAssembly).
+- **Multi-world Management**: Create and store configurations for multiple worlds. The application ensures that only one Minecraft server Docker container is active at a time, allowing you to seamlessly switch between your defined worlds with a single click.
+- **Docker Integration**: Runs Minecraft servers in isolated Docker containers for better security and resource management.
+- **Dynamic Configuration**: Modify world settings like Game Mode (`survival`, `creative`, etc.) directly from the UI.
+- **Play Timer**: Set a time limit for a gameplay session. The server will automatically stop, and players will receive countdown notifications.
+- **Favorite Worlds**: Mark your most-used worlds for quick access.
+- **Secure**: Supports integration with an authentication proxy for secure access.
+- **PWA Support**: The frontend is a Progressive Web App that can be "installed" on your desktop or mobile device and notifies you when updates are available.
 
 ## Technology Stack
 
-*   **Backend**: Go
-*   **Frontend**: Go (compiled to Wasm) using go-app
-*   **Database**: MongoDB
-*   **Containerization**: Docker
-*   **UI Library**: Bootstrap
+- **Backend**: Go
+- **Frontend**: Go (compiled to Wasm) using go-app
+- **Database**: MongoDB
+- **Containerization**: Docker
+- **UI Library**: Bootstrap
 
 ## Getting Started
 
@@ -33,13 +33,14 @@ It also includes a "Play Timer" feature, perfect for parents or server admins wh
 
 Before you begin, ensure you have the following installed:
 
-*   Go (version 1.18 or newer)
-*   Docker
-*   MongoDB
+- Go (version 1.18 or newer)
+- Docker
+- MongoDB
 
 ### Installation
 
 1.  **Clone the repository:**
+
     ```bash
     git clone https://github.com/ajaxe/mc-manager.git
     cd mc-manager
@@ -49,6 +50,7 @@ Before you begin, ensure you have the following installed:
     Create a `config.yml` file in the root of the project. You can use the example below as a starting point. See the **Configuration** section for more details on each option.
 
 3.  **Build the application:**
+
     ```bash
     # This will build the server binary
     go build -o mc-manager ./cmd/server
@@ -132,3 +134,57 @@ game_server:
     options:
       max-size: "10m"
       max-file: "3"
+```
+
+## Development notes
+
+### Dev docker configuration
+
+Created shared volumen mapped to minecraft worlds directory, uising
+
+```bash
+docker volume create --driver local \
+  --opt type=none \
+  --opt device=<host_dir>/minecraft/data/worlds \
+  --opt o=bind minecraft-worlds
+```
+
+Above volume is mapped to container path _/minecraft/worlds_. The application also removes the world data folder when a world is deleted.
+
+### Build tags
+
+`js` build tag is used to exclude any dependency on `gameserver` package & related docker client SDK, when build wasm package.
+
+`windows` build tag is used to have alternate way of initializing docker client when debugging on windows OS
+
+`unix` build tag is used for linux compilation where we need access to `/var/run/docker.sock` socket.
+
+### Debugging commands
+
+To support dynamic build, to be as close as HMR
+
+```pwsh
+wgo -xdir tmp -file .go -file .js -file .css  make run
+```
+
+### Docker image build commands
+
+Image build command
+
+```pwsh
+docker build . --tag apogee-dev/mc-manager:local -f Dockerfile
+```
+
+### Docker test commands
+
+Test image build command
+
+```pwsh
+docker build . --tag apogee-dev/mc-manager-tests:local -f Dockerfile.test
+```
+
+Test run command
+
+```pwsh
+docker run --volume=/var/run/docker.sock:/var/run/docker.sock apogee-dev/mc-manager-tests:local
+```

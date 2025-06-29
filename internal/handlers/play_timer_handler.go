@@ -52,6 +52,12 @@ func (p *playTimerHandler) PlayTimer() echo.HandlerFunc {
 // CreatePlayTimer returns a POST handler which creates a new play timer item.
 func (p *playTimerHandler) CreatePlayTimer() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
+		cc := c.(*models.AppContext)
+
+		if cc.IsAdmin() == false {
+			return models.NewAppError(http.StatusBadRequest, "Only Poacha can create play timer.", nil)
+		}
+
 		u := &models.PlayTimerItem{}
 		if err := c.Bind(u); err != nil {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
@@ -62,13 +68,19 @@ func (p *playTimerHandler) CreatePlayTimer() echo.HandlerFunc {
 			return
 		}
 
-		return c.JSON(http.StatusOK, models.NewApiIDResult(id.Hex()))
+		return cc.JSON(http.StatusOK, models.NewApiIDResult(id.Hex()))
 	}
 }
 
 // DeletePlayTimer returns a DELETE handler which deactivates the current play timer item.
 func (p *playTimerHandler) DeletePlayTimer() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
+		cc := c.(*models.AppContext)
+
+		if cc.IsAdmin() == false {
+			return models.NewAppError(http.StatusBadRequest, "Only Poacha can delete play timer.", nil)
+		}
+
 		p, err := db.ActivePlayTimer()
 		if p != nil {
 			id, _ := bson.ObjectIDFromHex(p.ID)
@@ -80,7 +92,7 @@ func (p *playTimerHandler) DeletePlayTimer() echo.HandlerFunc {
 			}
 			job.StopCurrentPlayTimer()
 		}
-		return c.JSON(http.StatusOK, models.SuccessApiResult())
+		return cc.JSON(http.StatusOK, models.SuccessApiResult())
 	}
 }
 
