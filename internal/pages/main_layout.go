@@ -20,7 +20,8 @@ func (m *MainLayout) OnNav(ctx app.Context) {
 			return
 		} else if u != "" {
 			ctx.Dispatch(func(ctx app.Context) {
-				ctx.Navigate(u)
+				client.NewAppContext(ctx).
+					LoginRedirect(u)
 			})
 		}
 	})

@@ -86,3 +86,8 @@ func (c AppContext) ShowMessage(msg string, r models.ApiResult, e error) {
 	}
 	c.Update()
 }
+func (c AppContext) LoginRedirect(u string) {
+	app.Window().
+		Get("location").
+		Call("replace", u)
+}
