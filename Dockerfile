@@ -1,47 +1,74 @@
-FROM golang:alpine AS builder
+# --- Builder Stage ---
+# Use a specific version of golang:alpine for reproducibility
+FROM golang:1.24.4-alpine3.22 AS builder
 
-ARG InstallFolder=/go/src/github.com/ajaxe/mc-manager
+# Define the application directory
+ARG APP_DIR=/app
+WORKDIR ${APP_DIR}
 
-RUN mkdir -p $InstallFolder
-
-WORKDIR $InstallFolder
-
-COPY go.mod .
-COPY go.sum .
+# Copy go.mod and go.sum first to leverage Docker layer caching
+COPY go.mod go.sum ./
+# Download dependencies. This creates a separate layer for dependencies.
 RUN go mod download
 
+# Copy the rest of the application source code
 COPY . .
 
-ENV GOCACHE=/root/.cache/go-build
+# Build the Go applications (server and wasm)
+# Using BuildKit cache mounts for faster builds.
+# -ldflags="-s -w" strips debug information, reducing binary size.
+# Output artifacts to a dedicated /dist directory for easy copying.
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    mkdir -p /dist/web && \
+    GOARCH=wasm GOOS=js go build -ldflags="-s -w" -tags wasm -o /dist/web/app.wasm ./cmd/webapp && \
+    go build -ldflags="-s -w" -tags unix -o /dist/server ./cmd/webapp/ && \
+    cp -a ./web/* /dist/web/
 
-RUN --mount=type=cache,target=/go/pkg/mod/ \
-    --mount=type=cache,target="/root/.cache/go-build" \
-    --mount=type=bind,target=. \
-    GOARCH=wasm GOOS=js go build -tags wasm -o /root/app/web/app.wasm ./cmd/webapp \
-    && go build -tags unix -o /root/app/server ./cmd/webapp/ \
-    && cp -a ./web/* /root/app/web/
+# --- Runner Stage ---
+# Use a specific, minimal base image
+FROM alpine:3.19 AS runner
 
-FROM alpine:latest AS runner
+# Port for the server to listen on
+ARG Port=8000
 
-ARG InstallFolder=/root/app \
-    Port=8000
+# Create a non-root user and group for security
+# It's good practice to run applications as a non-root user.
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-RUN apk add --no-cache curl
+# Install curl for healthcheck and create necessary directories.
+# Combining these into one RUN command reduces image layers.
+# su-exec is a lightweight tool to drop root privileges.
+RUN apk add --no-cache curl su-exec && \
+    mkdir -p /minecraft/worlds /home/app && \
+    chown -R appuser:appgroup /minecraft/worlds /home/app
 
-# local folder to shared minecraft-worlds volume
-RUN mkdir -p /minecraft/worlds
+# Set the working directory
+WORKDIR /home/app
 
-RUN mkdir -p /home/app/
-WORKDIR /home/app/
+# Copy artifacts and the entrypoint script.
+COPY --chown=appuser:appgroup --from=builder /dist .
+COPY --chown=root:root entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY --from=builder "${InstallFolder}/." .
+# The container will start as root, and the entrypoint script will
+# perform setup before dropping privileges to 'appuser'.
 
+# Set environment variables
 ENV APP_ENV=production \
-    APP_SERVER_PORT=$Port
+    APP_SERVER_PORT=${Port}
 
-EXPOSE $Port
+# Expose the application port
+EXPOSE ${Port}
 
+# Healthcheck to ensure the server is running.
+# Using ${Port} makes it dynamic. `|| exit 1` ensures a non-zero exit code on failure.
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl --fail "http://localhost:8000/healthcheck" || exit
+    CMD curl --fail "http://localhost:${APP_SERVER_PORT}/healthcheck" || exit 1
 
+# Set the entrypoint to our script.
+# The CMD will be passed as arguments to this script.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+
+# Command to run the application
 CMD ["./server"]
