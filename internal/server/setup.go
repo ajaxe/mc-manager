@@ -76,4 +76,5 @@ func Start(e *echo.Echo) {
 	if err := e.Shutdown(ctx); err != nil {
 		e.Logger.Fatal("failed to shutdown server: %v", err)
 	}
+	e.Logger.Info("server exited properly")
 }

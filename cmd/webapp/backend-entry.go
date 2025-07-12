@@ -3,6 +3,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/ajaxe/mc-manager/internal/server"
 	"github.com/labstack/echo/v4"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
@@ -23,4 +25,6 @@ func Backend(ah *app.Handler) {
 	})
 
 	server.Start(s)
+
+	log.Println("end of Backend(...)")
 }
