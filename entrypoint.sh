@@ -20,13 +20,14 @@ if [ -S /var/run/docker.sock ]; then
     log "Host Docker socket GID: ${DOCKER_GID}"
 
     # Check if a group with the target GID already exists.
-    if ! DOCKER_GROUP_NAME=$(getent group ${DOCKER_GID} | cut -d: -f1); then
+    if getent group ${DOCKER_GID} > /dev/null 2>&1; then
+        DOCKER_GROUP_NAME=$(getent group ${DOCKER_GID} | cut -d: -f1)
+        log "Group '${DOCKER_GROUP_NAME}' with GID ${DOCKER_GID} already exists."
+    else
         # If not, create a new 'docker' group with this GID.
         log "Group with GID ${DOCKER_GID} not found. Creating a new group 'docker'."
         DOCKER_GROUP_NAME=docker
         addgroup -S -g ${DOCKER_GID} ${DOCKER_GROUP_NAME}
-    else
-        log "Group '${DOCKER_GROUP_NAME}' with GID ${DOCKER_GID} already exists."
     fi
 
     # Add 'appuser' to the group that owns the docker socket.
