@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/http"
 	"github.com/labstack/echo/v4"
 )
@@ -19,5 +20,13 @@ func Healthcheck() echo.MiddlewareFunc {
 }
 
 func performHealthCheck(c echo.Context) error {
+	_, err := db.NewClient()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "DB connection failed")
+	}
+	err = db.Ping()
+	if err != nil {
+		return c.String(http.StatusInternalServerError, "DB ping failed")
+	}
 	return c.String(http.StatusOK, "OK")
 }
