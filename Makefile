@@ -1,5 +1,7 @@
 SHELL := pwsh.exe
 
+.PHONY: clean build run prod
+
 clean:
 	@echo "Cleaning up..."
 	@pwsh -Command "if(Test-Path -Path ./tmp) { rm -recurse -force ./tmp }"
@@ -17,3 +19,7 @@ build:
 run: build
 	@echo "Running server..."
 	cd ./tmp && ./server.exe
+
+prod:
+	@echo "Building production docker image..."
+	@docker build . --tag apogee-dev/mc-manager:local -f Dockerfile
