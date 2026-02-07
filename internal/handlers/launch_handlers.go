@@ -12,10 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AddLaunchHandlers(e *echo.Group, l echo.Logger) {
+func AddLaunchHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
 	h := &launchHandler{
 		logger:      l,
 		gameService: NewGameService(l),
+		db:          db,
 	}
 
 	e.GET("/launches", h.Launches())
@@ -26,6 +27,7 @@ func AddLaunchHandlers(e *echo.Group, l echo.Logger) {
 type launchHandler struct {
 	logger      echo.Logger
 	gameService GameService
+	db          *db.Client
 }
 
 func (l *launchHandler) DeleteLaunch(s string) echo.HandlerFunc {
@@ -85,7 +87,7 @@ func (l *launchHandler) list(dir, curID, pgs string) (paged models.PaginationRes
 		dir = models.PageDirectionNext
 	}
 
-	paged, err = db.Launches(db.PaginationOptions{
+	paged, err = l.db.Launches(db.PaginationOptions{
 		Direction: dir,
 		PageSize:  pg,
 		CursorID:  curID,
@@ -99,7 +101,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 	if err != nil {
 		return
 	}
-	w, err := db.WorldById(i)
+	w, err := l.db.WorldById(i)
 	if err != nil {
 		err = models.ErrAppGeneric(fmt.Errorf("world not found: %v", err))
 		return
@@ -128,7 +130,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 	if err = gameService.createGameServer(w); err != nil {
 		l.logger.Error("Failed to create game server: %v", err)
 
-		_, e := db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))
+		_, e := l.db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))
 
 		l.logger.Error("Failed to insert launch item: %v", e)
 
@@ -136,7 +138,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 		return
 	}
 
-	id, err = db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "success"))
+	id, err = l.db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "success"))
 
 	if err != nil {
 		err = models.ErrAppGeneric(err)

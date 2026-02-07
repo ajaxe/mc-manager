@@ -17,7 +17,7 @@ type readOptions struct {
 	collection string
 }
 
-func readAllCollection(ro readOptions) (d []any, err error) {
+func (c *Client) readAllCollection(ro readOptions) (d []any, err error) {
 	if ro.dbVal == nil {
 		err = fmt.Errorf("'dbVal' is required")
 		return
@@ -30,15 +30,10 @@ func readAllCollection(ro readOptions) (d []any, err error) {
 		ro.filter = &bson.D{}
 	}
 
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), readTimeout)
+	ctx, cancel := context.WithTimeout(context.TODO(), readTimeout)
 	defer cancel()
 
-	cur, err := c.Database(clientInstance.DbName).
+	cur, err := c.cli.Database(c.dbName).
 		Collection(ro.collection).
 		Find(ctx, ro.filter, ro.opts)
 
@@ -58,31 +53,21 @@ func readAllCollection(ro readOptions) (d []any, err error) {
 	return
 }
 
-func collectionCount(name string) (count int64, err error) {
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), readTimeout)
+func (c *Client) collectionCount(name string) (count int64, err error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), readTimeout)
 	defer cancel()
 
-	count, err = c.Database(clientInstance.DbName).
+	count, err = c.cli.Database(c.dbName).
 		Collection(name).
 		EstimatedDocumentCount(ctx)
 
 	return
 }
 
-func deleteByID(id bson.ObjectID, collection string) (err error) {
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
+func (c *Client) deleteByID(id bson.ObjectID, collection string) (err error) {
 	f := bson.D{{"_id", id.Hex()}}
 
-	res, err := c.Database(clientInstance.DbName).
+	res, err := c.cli.Database(c.dbName).
 		Collection(collection).
 		DeleteMany(context.TODO(), f)
 
@@ -93,34 +78,24 @@ func deleteByID(id bson.ObjectID, collection string) (err error) {
 	return
 }
 
-func insertRecord(u any, collection string) (err error) {
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
+func (c *Client) insertRecord(u any, collection string) (err error) {
 	ctx, cancel := context.WithTimeout(context.TODO(), writeTimeout)
 	defer cancel()
 
-	_, err = c.Database(clientInstance.DbName).
+	_, err = c.cli.Database(c.dbName).
 		Collection(collection).
 		InsertOne(ctx, u)
 
 	return
 }
 
-func readByID(id bson.ObjectID, v dbValFunc, collection string) (d any, err error) {
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), readTimeout)
+func (c *Client) readByID(id bson.ObjectID, v dbValFunc, collection string) (d any, err error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), readTimeout)
 	defer cancel()
 
 	f := bson.D{{"_id", id.Hex()}}
 
-	res := c.Database(clientInstance.DbName).
+	res := c.cli.Database(c.dbName).
 		Collection(collection).
 		FindOne(ctx, f)
 

@@ -18,10 +18,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
+func AddWorldsHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
 	h := &worldsHandler{
 		logger:      l,
 		gameService: NewGameService(l),
+		db:          db,
 	}
 
 	e.GET("/worlds", h.Worlds())
@@ -33,11 +34,12 @@ func AddWorldsHandlers(e *echo.Group, l echo.Logger) {
 type worldsHandler struct {
 	logger      echo.Logger
 	gameService GameService
+	db          *db.Client
 }
 
 func (w *worldsHandler) Worlds() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
-		d, err := db.Worlds()
+		d, err := w.db.Worlds()
 		if err != nil {
 			return
 		}
@@ -94,7 +96,7 @@ func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
 		}
 
 		u.CreateDate = time.Now().UTC().Format(time.RFC3339)
-		id, err := db.InsertWorld(u)
+		id, err := w.db.InsertWorld(u)
 		if err != nil {
 			return models.ErrAppGeneric(fmt.Errorf("error saving user: %v", err))
 		}
@@ -130,7 +132,7 @@ func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
 		}
 
-		if err := db.UpdateWorldByID(id, u); err != nil {
+		if err := w.db.UpdateWorldByID(id, u); err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
@@ -139,7 +141,7 @@ func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
 }
 
 func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
-	ww, err := db.WorldById(id)
+	ww, err := w.db.WorldById(id)
 	if err != nil {
 		return
 	}
@@ -150,7 +152,7 @@ func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
 		return models.NewAppError(http.StatusBadRequest, "Cannot delete world labeled as 'Favorite'", nil)
 	}
 
-	if err := db.DeleteWorldByID(id); err != nil {
+	if err := w.db.DeleteWorldByID(id); err != nil {
 		return err
 	}
 

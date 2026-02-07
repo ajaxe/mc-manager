@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/labstack/echo/v4"
 )
@@ -19,6 +20,7 @@ type observer struct {
 	timer   *time.Timer
 	endDt   time.Time
 	C       <-chan time.Time
+	db      *db.Client
 }
 
 // setCurrent assigns the new play timer to the observer.
@@ -42,7 +44,7 @@ func (j *observer) setCurrent(item *models.PlayTimerItem) (err error) {
 	d := nextTick(j.endDt)
 	if d <= 0 {
 		j.logger.Infof("cannot set current item: play time exceeded Now()")
-		expirePlayTimer(item, j.logger)
+		j.expirePlayTimer(item)
 	}
 	j.logger.Infof("setting first tick after %v minutes", int(d.Minutes()))
 	j.timer = time.NewTimer(d)
@@ -58,7 +60,7 @@ func (j *observer) setNextTick() (done bool) {
 	d := nextTick(j.endDt)
 	if d <= 0 {
 		j.logger.Infof("play time exceeded Now()")
-		expirePlayTimer(j.current, j.logger)
+		j.expirePlayTimer(j.current)
 		return true
 	}
 	j.logger.Infof("setting next tick after %v minutes", int(d.Minutes()))

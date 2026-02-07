@@ -12,10 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AddPlaytimerHandlers(e *echo.Group, l echo.Logger) {
+func AddPlaytimerHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
 	h := &playTimerHandler{
 		logger:      l,
 		gameService: NewGameService(l),
+		db:          db,
 	}
 
 	e.GET("/playtimer", h.PlayTimer())
@@ -26,19 +27,20 @@ func AddPlaytimerHandlers(e *echo.Group, l echo.Logger) {
 type playTimerHandler struct {
 	logger      echo.Logger
 	gameService GameService
+	db          *db.Client
 }
 
 // PlayTimer returns a GET handler which responds with active play timer item.
 func (p *playTimerHandler) PlayTimer() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
-		p, err := db.ActivePlayTimer()
+		pt, err := p.db.ActivePlayTimer()
 		if err != nil {
 			err = models.ErrAppGeneric(err)
 			return
 		}
 		d := []*models.PlayTimerItem{}
-		if p != nil {
-			d = append(d, p)
+		if pt != nil {
+			d = append(d, pt)
 		}
 		return c.JSON(http.StatusOK, &models.PlayTimerListResult{
 			Data: d,
@@ -81,11 +83,11 @@ func (p *playTimerHandler) DeletePlayTimer() echo.HandlerFunc {
 			return models.NewAppError(http.StatusBadRequest, "Only Poacha can delete play timer.", nil)
 		}
 
-		p, err := db.ActivePlayTimer()
-		if p != nil {
-			id, _ := bson.ObjectIDFromHex(p.ID)
-			p.IsActive = false
-			err = db.UpdatePlayTimerByID(id, p)
+		pt, err := p.db.ActivePlayTimer()
+		if pt != nil {
+			id, _ := bson.ObjectIDFromHex(pt.ID)
+			pt.IsActive = false
+			err = p.db.UpdatePlayTimerByID(id, pt)
 			if err != nil {
 				err = models.ErrAppGeneric(err)
 				return
@@ -109,7 +111,7 @@ func (p *playTimerHandler) create(d *models.PlayTimerItem) (id bson.ObjectID, er
 	d.CreateDate = now.Format(time.RFC3339)
 	d.EndDate = now.Add(time.Minute * time.Duration(d.Minutes)).Format(time.RFC3339)
 
-	active, err := db.ActivePlayTimer()
+	active, err := p.db.ActivePlayTimer()
 	if err != nil {
 		err = models.ErrAppGeneric(err)
 		return
@@ -118,14 +120,14 @@ func (p *playTimerHandler) create(d *models.PlayTimerItem) (id bson.ObjectID, er
 	if active != nil {
 		active.IsActive = false
 		i, _ := bson.ObjectIDFromHex(active.ID)
-		err = db.UpdatePlayTimerByID(i, active)
+		err = p.db.UpdatePlayTimerByID(i, active)
 		if err != nil {
 			err = models.ErrAppGeneric(err)
 			return
 		}
 	}
 
-	id, err = db.InsertPlayTimer(d)
+	id, err = p.db.InsertPlayTimer(d)
 	if err != nil {
 		err = models.ErrAppGeneric(err)
 	}

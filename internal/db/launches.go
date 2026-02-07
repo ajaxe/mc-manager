@@ -8,7 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.LaunchItem], err error) {
+func (c *Client) Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.LaunchItem], err error) {
 	var fn dbValFunc = func() any { return &models.LaunchItem{} }
 
 	// default sort order is "descending" by "launch_date"
@@ -49,7 +49,7 @@ func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.Laun
 		}
 	}
 
-	r, err := readAllCollection(readOptions{
+	r, err := c.readAllCollection(readOptions{
 		dbVal:      fn,
 		collection: collectionLaunches,
 		filter:     &f,
@@ -72,7 +72,7 @@ func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.Laun
 		}
 	}
 
-	count, err := collectionCount(collectionLaunches)
+	count, err := c.collectionCount(collectionLaunches)
 
 	hasMore := len(d) > pgOpts.PageSize
 
@@ -111,10 +111,10 @@ func Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.Laun
 
 	return
 }
-func LaunchInsert(l *models.LaunchItem) (id bson.ObjectID, err error) {
+func (c *Client) LaunchInsert(l *models.LaunchItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
 	l.ID = id.Hex()
 
-	err = insertRecord(l, collectionLaunches)
+	err = c.insertRecord(l, collectionLaunches)
 	return
 }

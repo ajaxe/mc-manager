@@ -25,9 +25,11 @@ func StopCurrentPlayTimer() {
 	currentObserver.stop()
 }
 
-func StartMonitor(ctx context.Context, l echo.Logger) {
+func StartMonitor(ctx context.Context, l echo.Logger, client *db.Client) {
 	currentObserver.logger = l
-	i, err := db.ActivePlayTimer()
+	currentObserver.db = client
+
+	i, err := client.ActivePlayTimer()
 
 	ops := gameserver.NewGameServerOperations(l, config.LoadAppConfig())
 
@@ -74,7 +76,7 @@ func sendMessage(c *gameserver.GameServerOperations, d time.Duration) {
 	_ = c.Message(m)
 }
 
-func expirePlayTimer(p *models.PlayTimerItem, l echo.Logger) {
+func (j *observer) expirePlayTimer(p *models.PlayTimerItem) {
 	if p == nil {
 		return
 	}
@@ -85,12 +87,12 @@ func expirePlayTimer(p *models.PlayTimerItem, l echo.Logger) {
 	id, err := bson.ObjectIDFromHex(p.ID)
 
 	if err != nil {
-		l.Errorf("failed to parse play timer ID: %v: %v", p.ID, err)
+		j.logger.Errorf("failed to parse play timer ID: %v: %v", p.ID, err)
 		return
 	}
-	if err := db.UpdatePlayTimerByID(id, p); err != nil {
-		l.Errorf("failed to update play timer ID: %v: %v", p.ID, err)
+	if err := j.db.UpdatePlayTimerByID(id, p); err != nil {
+		j.logger.Errorf("failed to update play timer ID: %v: %v", p.ID, err)
 	} else {
-		l.Infof("Play timer ID: %v expired and updated successfully", p.ID)
+		j.logger.Infof("Play timer ID: %v expired and updated successfully", p.ID)
 	}
 }

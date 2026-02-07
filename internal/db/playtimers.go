@@ -10,18 +10,13 @@ import (
 )
 
 // ActivePlayTimer returns play timer item with is_active set to true.
-func ActivePlayTimer() (p *models.PlayTimerItem, err error) {
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
+func (c *Client) ActivePlayTimer() (p *models.PlayTimerItem, err error) {
 	f := bson.D{{"is_active", true}}
 
 	ctx, cancel := context.WithTimeout(context.TODO(), writeTimeout)
 	defer cancel()
 
-	err = c.Database(clientInstance.DbName).
+	err = c.cli.Database(c.dbName).
 		Collection(collectionPlaytimer).
 		FindOne(ctx, f).
 		Decode(&p)
@@ -36,21 +31,16 @@ func ActivePlayTimer() (p *models.PlayTimerItem, err error) {
 }
 
 // InsertPlayTimer inserts new instance of play timer item into the database.
-func InsertPlayTimer(p *models.PlayTimerItem) (id bson.ObjectID, err error) {
+func (c *Client) InsertPlayTimer(p *models.PlayTimerItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
 	p.ID = id.Hex()
 
-	err = insertRecord(p, collectionPlaytimer)
+	err = c.insertRecord(p, collectionPlaytimer)
 	return
 }
 
 // UpdatePlayTimerByID updates an existing play timer item by its ID.
-func UpdatePlayTimerByID(id bson.ObjectID, p *models.PlayTimerItem) (err error) {
-	c, err := NewClient()
-	if err != nil {
-		return
-	}
-
+func (c *Client) UpdatePlayTimerByID(id bson.ObjectID, p *models.PlayTimerItem) (err error) {
 	filter := bson.D{{"_id", id.Hex()}}
 	if p.ID != id.Hex() {
 		p.ID = id.Hex()
@@ -59,7 +49,7 @@ func UpdatePlayTimerByID(id bson.ObjectID, p *models.PlayTimerItem) (err error) 
 	ctx, cancel := context.WithTimeout(context.TODO(), writeTimeout)
 	defer cancel()
 
-	res, err := c.Database(clientInstance.DbName).
+	res, err := c.cli.Database(c.dbName).
 		Collection(collectionPlaytimer).
 		ReplaceOne(ctx, filter, p)
 

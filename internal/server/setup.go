@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/config"
+	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/handlers"
 	"github.com/ajaxe/mc-manager/internal/job"
 	"github.com/ajaxe/mc-manager/internal/models"
@@ -17,7 +18,7 @@ import (
 	elog "github.com/labstack/gommon/log"
 )
 
-func NewBackendApi() *echo.Echo {
+func NewBackendApi(db *db.Client) *echo.Echo {
 	e := echo.New()
 	e.Logger.SetLevel(elog.DEBUG)
 	e.HTTPErrorHandler = handlers.AppErrorHandler()
@@ -29,22 +30,22 @@ func NewBackendApi() *echo.Echo {
 		}
 	})
 
-	e.Use(middleware.Logger())
+	e.Use(middleware.RequestLogger())
 	e.Use(middleware.Recover())
-	e.Use(handlers.Healthcheck())
+	e.Use(handlers.Healthcheck(db))
 
 	a := e.Group("/api")
 
 	handlers.AddLoginHandlers(a, e.Logger)
-	handlers.AddWorldsHandlers(a, e.Logger)
-	handlers.AddLaunchHandlers(a, e.Logger)
-	handlers.AddPlaytimerHandlers(a, e.Logger)
+	handlers.AddWorldsHandlers(a, e.Logger, db)
+	handlers.AddLaunchHandlers(a, e.Logger, db)
+	handlers.AddPlaytimerHandlers(a, e.Logger, db)
 
 	return e
 }
 
 // Start echo server with graceful hanlding of process termination.
-func Start(e *echo.Echo) {
+func Start(e *echo.Echo, db *db.Client) {
 	cfg := config.LoadAppConfig()
 	addr := fmt.Sprintf(":%v", cfg.Server.Port)
 
@@ -66,7 +67,7 @@ func Start(e *echo.Echo) {
 	}()
 
 	go func() {
-		job.StartMonitor(ctx, e.Logger)
+		job.StartMonitor(ctx, e.Logger, db)
 	}()
 
 	// Wait for interrupt signal to gracefully shut down the server with a timeout of 10 seconds.
