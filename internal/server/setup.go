@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"log/slog"
+
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/handlers"
@@ -19,6 +21,10 @@ import (
 )
 
 func NewBackendApi(db *db.Client) *echo.Echo {
+	// Setup slog to use JSON handler
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	e := echo.New()
 	e.Logger.SetLevel(elog.DEBUG)
 	e.HTTPErrorHandler = handlers.AppErrorHandler()
