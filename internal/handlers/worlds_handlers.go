@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"os"
@@ -39,7 +40,7 @@ type worldsHandler struct {
 
 func (w *worldsHandler) Worlds() echo.HandlerFunc {
 	return func(c echo.Context) (err error) {
-		d, err := w.db.Worlds()
+		d, err := w.db.Worlds(c.Request().Context())
 		if err != nil {
 			return
 		}
@@ -96,7 +97,7 @@ func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
 		}
 
 		u.CreateDate = time.Now().UTC().Format(time.RFC3339)
-		id, err := w.db.InsertWorld(u)
+		id, err := w.db.InsertWorld(c.Request().Context(), u)
 		if err != nil {
 			return models.ErrAppGeneric(fmt.Errorf("error saving user: %v", err))
 		}
@@ -112,7 +113,7 @@ func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
 			return models.ErrAppBadID(err)
 		}
 
-		if err := w.deleteWorld(id); err != nil {
+		if err := w.deleteWorld(c.Request().Context(), id); err != nil {
 			return err
 		}
 
@@ -132,7 +133,7 @@ func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
 		}
 
-		if err := w.db.UpdateWorldByID(id, u); err != nil {
+		if err := w.db.UpdateWorldByID(c.Request().Context(), id, u); err != nil {
 			return models.ErrAppGeneric(err)
 		}
 
@@ -140,8 +141,8 @@ func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
 	}
 }
 
-func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
-	ww, err := w.db.WorldById(id)
+func (w *worldsHandler) deleteWorld(ctx context.Context, id bson.ObjectID) (err error) {
+	ww, err := w.db.WorldById(ctx, id)
 	if err != nil {
 		return
 	}
@@ -152,7 +153,7 @@ func (w *worldsHandler) deleteWorld(id bson.ObjectID) (err error) {
 		return models.NewAppError(http.StatusBadRequest, "Cannot delete world labeled as 'Favorite'", nil)
 	}
 
-	if err := w.db.DeleteWorldByID(id); err != nil {
+	if err := w.db.DeleteWorldByID(ctx, id); err != nil {
 		return err
 	}
 

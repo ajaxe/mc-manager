@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -47,7 +48,7 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
 		}
 
-		id, err := l.createLaunch(u)
+		id, err := l.createLaunch(c.Request().Context(), u)
 		if err != nil {
 			return
 		}
@@ -64,7 +65,7 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 		curID := c.QueryParam("cursorId")
 		pgs := c.QueryParam("pageSize")
 
-		paged, err := l.list(dir, curID, pgs)
+		paged, err := l.list(c.Request().Context(), dir, curID, pgs)
 
 		return c.JSON(http.StatusOK, &models.LaunchItemListResult{
 			PaginationResult: paged,
@@ -75,7 +76,7 @@ func (l *launchHandler) Launches() echo.HandlerFunc {
 	}
 }
 
-func (l *launchHandler) list(dir, curID, pgs string) (paged models.PaginationResult[models.LaunchItem], err error) {
+func (l *launchHandler) list(ctx context.Context, dir, curID, pgs string) (paged models.PaginationResult[models.LaunchItem], err error) {
 	pg := 10
 	if n, _ := strconv.Atoi(pgs); pgs != "" {
 		pg = n
@@ -87,7 +88,7 @@ func (l *launchHandler) list(dir, curID, pgs string) (paged models.PaginationRes
 		dir = models.PageDirectionNext
 	}
 
-	paged, err = l.db.Launches(db.PaginationOptions{
+	paged, err = l.db.Launches(ctx, db.PaginationOptions{
 		Direction: dir,
 		PageSize:  pg,
 		CursorID:  curID,
@@ -96,12 +97,12 @@ func (l *launchHandler) list(dir, curID, pgs string) (paged models.PaginationRes
 	return
 }
 
-func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.ObjectID, err error) {
+func (l *launchHandler) createLaunch(ctx context.Context, u *models.CreateLaunchItem) (id bson.ObjectID, err error) {
 	i, err := bson.ObjectIDFromHex(u.WorldItemID)
 	if err != nil {
 		return
 	}
-	w, err := l.db.WorldById(i)
+	w, err := l.db.WorldById(ctx, i)
 	if err != nil {
 		err = models.ErrAppGeneric(fmt.Errorf("world not found: %v", err))
 		return
@@ -130,7 +131,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 	if err = gameService.createGameServer(w); err != nil {
 		l.logger.Error("Failed to create game server: %v", err)
 
-		_, e := l.db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))
+		_, e := l.db.LaunchInsert(ctx, models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))
 
 		l.logger.Error("Failed to insert launch item: %v", e)
 
@@ -138,7 +139,7 @@ func (l *launchHandler) createLaunch(u *models.CreateLaunchItem) (id bson.Object
 		return
 	}
 
-	id, err = l.db.LaunchInsert(models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "success"))
+	id, err = l.db.LaunchInsert(ctx, models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "success"))
 
 	if err != nil {
 		err = models.ErrAppGeneric(err)

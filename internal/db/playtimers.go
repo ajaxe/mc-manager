@@ -10,7 +10,7 @@ import (
 )
 
 // ActivePlayTimer returns play timer item with is_active set to true.
-func (c *Client) ActivePlayTimer() (p *models.PlayTimerItem, err error) {
+func (c *Client) ActivePlayTimer(ctx context.Context) (p *models.PlayTimerItem, err error) {
 	f := bson.D{{"is_active", true}}
 
 	ctx, cancel := context.WithTimeout(context.TODO(), writeTimeout)
@@ -31,16 +31,16 @@ func (c *Client) ActivePlayTimer() (p *models.PlayTimerItem, err error) {
 }
 
 // InsertPlayTimer inserts new instance of play timer item into the database.
-func (c *Client) InsertPlayTimer(p *models.PlayTimerItem) (id bson.ObjectID, err error) {
+func (c *Client) InsertPlayTimer(ctx context.Context, p *models.PlayTimerItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
 	p.ID = id.Hex()
 
-	err = c.insertRecord(p, collectionPlaytimer)
+	err = c.insertRecord(ctx, p, collectionPlaytimer)
 	return
 }
 
 // UpdatePlayTimerByID updates an existing play timer item by its ID.
-func (c *Client) UpdatePlayTimerByID(id bson.ObjectID, p *models.PlayTimerItem) (err error) {
+func (c *Client) UpdatePlayTimerByID(ctx context.Context, id bson.ObjectID, p *models.PlayTimerItem) (err error) {
 	filter := bson.D{{"_id", id.Hex()}}
 	if p.ID != id.Hex() {
 		p.ID = id.Hex()

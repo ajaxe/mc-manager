@@ -29,7 +29,7 @@ func StartMonitor(ctx context.Context, l echo.Logger, client *db.Client) {
 	currentObserver.logger = l
 	currentObserver.db = client
 
-	i, err := client.ActivePlayTimer()
+	i, err := client.ActivePlayTimer(ctx)
 
 	ops := gameserver.NewGameServerOperations(l, config.LoadAppConfig())
 
@@ -38,17 +38,17 @@ func StartMonitor(ctx context.Context, l echo.Logger, client *db.Client) {
 	}
 
 	if i != nil {
-		currentObserver.setCurrent(i)
+		currentObserver.setCurrent(ctx, i)
 	}
 
 	for {
 		select {
 		case i := <-inputCh:
 			l.Infof("received job item: %v: end date: %v", i.ID, i.EndDate)
-			currentObserver.setCurrent(i)
+			currentObserver.setCurrent(ctx, i)
 		case <-currentObserver.C:
 			sendMessage(ops, currentObserver.remaining())
-			if n := currentObserver.setNextTick(); n {
+			if n := currentObserver.setNextTick(ctx); n {
 				ops.Message("Shutting down server ...")
 				time.Sleep(2 * time.Second)
 				ops.StopAll()
@@ -76,7 +76,7 @@ func sendMessage(c *gameserver.GameServerOperations, d time.Duration) {
 	_ = c.Message(m)
 }
 
-func (j *observer) expirePlayTimer(p *models.PlayTimerItem) {
+func (j *observer) expirePlayTimer(ctx context.Context, p *models.PlayTimerItem) {
 	if p == nil {
 		return
 	}
@@ -90,7 +90,7 @@ func (j *observer) expirePlayTimer(p *models.PlayTimerItem) {
 		j.logger.Errorf("failed to parse play timer ID: %v: %v", p.ID, err)
 		return
 	}
-	if err := j.db.UpdatePlayTimerByID(id, p); err != nil {
+	if err := j.db.UpdatePlayTimerByID(ctx, id, p); err != nil {
 		j.logger.Errorf("failed to update play timer ID: %v: %v", p.ID, err)
 	} else {
 		j.logger.Infof("Play timer ID: %v expired and updated successfully", p.ID)

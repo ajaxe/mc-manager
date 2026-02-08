@@ -7,10 +7,10 @@ import (
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func (c *Client) Worlds() (d []*models.WorldItem, err error) {
+func (c *Client) Worlds(ctx context.Context) (d []*models.WorldItem, err error) {
 	var fn dbValFunc = func() any { return &models.WorldItem{} }
 
-	r, err := c.readAllCollection(readOptions{
+	r, err := c.readAllCollection(ctx, readOptions{
 		dbVal:      fn,
 		collection: collectionWorlds,
 	})
@@ -22,20 +22,20 @@ func (c *Client) Worlds() (d []*models.WorldItem, err error) {
 
 	return
 }
-func (c *Client) InsertWorld(w *models.WorldItem) (id bson.ObjectID, err error) {
+func (c *Client) InsertWorld(ctx context.Context, w *models.WorldItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
 	w.ID = id.Hex()
 
-	err = c.insertRecord(w, collectionWorlds)
+	err = c.insertRecord(ctx, w, collectionWorlds)
 	return
 }
-func (c *Client) DeleteWorldByID(id bson.ObjectID) error {
-	return c.deleteByID(id, collectionWorlds)
+func (c *Client) DeleteWorldByID(ctx context.Context, id bson.ObjectID) error {
+	return c.deleteByID(ctx, id, collectionWorlds)
 }
-func (c *Client) WorldById(id bson.ObjectID) (w *models.WorldItem, err error) {
+func (c *Client) WorldById(ctx context.Context, id bson.ObjectID) (w *models.WorldItem, err error) {
 	var fn dbValFunc = func() any { return &models.WorldItem{} }
 
-	r, err := c.readByID(id, fn, collectionWorlds)
+	r, err := c.readByID(ctx, id, fn, collectionWorlds)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +44,12 @@ func (c *Client) WorldById(id bson.ObjectID) (w *models.WorldItem, err error) {
 
 	return
 }
-func (c *Client) UpdateWorldByID(id bson.ObjectID, w *models.WorldItem) (err error) {
+func (c *Client) UpdateWorldByID(ctx context.Context, id bson.ObjectID, w *models.WorldItem) (err error) {
 	filter := bson.D{{"_id", id.Hex()}}
 	if w.ID != id.Hex() {
 		w.ID = id.Hex()
 	}
-	ctx, cancel := context.WithTimeout(context.TODO(), writeTimeout)
+	ctx, cancel := context.WithTimeout(ctx, writeTimeout)
 	defer cancel()
 
 	res, err := c.cli.Database(c.dbName).

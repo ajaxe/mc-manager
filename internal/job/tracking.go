@@ -1,6 +1,7 @@
 package job
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -24,7 +25,7 @@ type observer struct {
 }
 
 // setCurrent assigns the new play timer to the observer.
-func (j *observer) setCurrent(item *models.PlayTimerItem) (err error) {
+func (j *observer) setCurrent(ctx context.Context, item *models.PlayTimerItem) (err error) {
 	dt, err := time.Parse(time.RFC3339, item.EndDate)
 	if err != nil {
 		return
@@ -44,7 +45,7 @@ func (j *observer) setCurrent(item *models.PlayTimerItem) (err error) {
 	d := nextTick(j.endDt)
 	if d <= 0 {
 		j.logger.Infof("cannot set current item: play time exceeded Now()")
-		j.expirePlayTimer(item)
+		j.expirePlayTimer(ctx, item)
 	}
 	j.logger.Infof("setting first tick after %v minutes", int(d.Minutes()))
 	j.timer = time.NewTimer(d)
@@ -54,13 +55,13 @@ func (j *observer) setCurrent(item *models.PlayTimerItem) (err error) {
 }
 
 // setNextTick sets the timer for the next tick based on the end date of the current play timer item.
-func (j *observer) setNextTick() (done bool) {
+func (j *observer) setNextTick(ctx context.Context) (done bool) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	d := nextTick(j.endDt)
 	if d <= 0 {
 		j.logger.Infof("play time exceeded Now()")
-		j.expirePlayTimer(j.current)
+		j.expirePlayTimer(ctx, j.current)
 		return true
 	}
 	j.logger.Infof("setting next tick after %v minutes", int(d.Minutes()))

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"math"
 
 	"github.com/ajaxe/mc-manager/internal/models"
@@ -8,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-func (c *Client) Launches(pgOpts PaginationOptions) (res models.PaginationResult[models.LaunchItem], err error) {
+func (c *Client) Launches(ctx context.Context, pgOpts PaginationOptions) (res models.PaginationResult[models.LaunchItem], err error) {
 	var fn dbValFunc = func() any { return &models.LaunchItem{} }
 
 	// default sort order is "descending" by "launch_date"
@@ -49,7 +50,7 @@ func (c *Client) Launches(pgOpts PaginationOptions) (res models.PaginationResult
 		}
 	}
 
-	r, err := c.readAllCollection(readOptions{
+	r, err := c.readAllCollection(ctx, readOptions{
 		dbVal:      fn,
 		collection: collectionLaunches,
 		filter:     &f,
@@ -72,7 +73,7 @@ func (c *Client) Launches(pgOpts PaginationOptions) (res models.PaginationResult
 		}
 	}
 
-	count, err := c.collectionCount(collectionLaunches)
+	count, err := c.collectionCount(ctx, collectionLaunches)
 
 	hasMore := len(d) > pgOpts.PageSize
 
@@ -111,10 +112,10 @@ func (c *Client) Launches(pgOpts PaginationOptions) (res models.PaginationResult
 
 	return
 }
-func (c *Client) LaunchInsert(l *models.LaunchItem) (id bson.ObjectID, err error) {
+func (c *Client) LaunchInsert(ctx context.Context, l *models.LaunchItem) (id bson.ObjectID, err error) {
 	id = bson.NewObjectID()
 	l.ID = id.Hex()
 
-	err = c.insertRecord(l, collectionLaunches)
+	err = c.insertRecord(ctx, l, collectionLaunches)
 	return
 }
