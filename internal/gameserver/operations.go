@@ -132,7 +132,7 @@ func (g *GameServerOperations) listContainers(cli *client.Client) (containers []
 
 	g.Logger.Infof("listing container with label: %v", l)
 
-	containers, err = cli.ContainerList(context.Background(), container.ListOptions{
+	containers, err = cli.ContainerList(context.TODO(), container.ListOptions{
 		Filters: filters.NewArgs(
 			filters.Arg("label", l)),
 	})
@@ -141,7 +141,7 @@ func (g *GameServerOperations) listContainers(cli *client.Client) (containers []
 }
 
 func (g *GameServerOperations) createGameServerInternal(w *models.WorldItem, cli *client.Client) (resp container.CreateResponse, err error) {
-	ctx := context.Background()
+	ctx := context.TODO()
 
 	c := g.Config.defaultConfig(w)
 	h := g.Config.defaultHostConfig()
@@ -166,7 +166,7 @@ func (g *GameServerOperations) createGameServerInternal(w *models.WorldItem, cli
 func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *client.Client) (err error) {
 	g.Logger.Infof("stopping container:%s", c.ContainerID)
 	err = sendStopCommand(gameserverConsoleOptions{
-		ctx:         context.Background(),
+		ctx:         context.TODO(),
 		logger:      g.Logger,
 		cli:         cli,
 		containerId: c.ContainerID,
@@ -176,7 +176,7 @@ func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *
 		return err
 	} else {
 		g.Logger.Infof("removing container:%s", c.ContainerID)
-		err = cli.ContainerRemove(context.Background(), c.ContainerID, container.RemoveOptions{Force: true})
+		err = cli.ContainerRemove(context.TODO(), c.ContainerID, container.RemoveOptions{Force: true})
 	}
 	return
 }
@@ -206,7 +206,7 @@ func (g *GameServerOperations) Message(m string) (err error) {
 	for _, r := range containers {
 		e := sendChatMessage(chatMessageOptions{
 			gameserverConsoleOptions: gameserverConsoleOptions{
-				ctx:         context.Background(),
+				ctx:         context.TODO(),
 				logger:      g.Logger,
 				cli:         cli,
 				containerId: r.ID,

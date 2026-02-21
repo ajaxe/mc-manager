@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 
 	"log/slog"
@@ -55,7 +56,7 @@ func Start(e *echo.Echo, db *db.Client) {
 	cfg := config.LoadAppConfig()
 	addr := fmt.Sprintf(":%v", cfg.Server.Port)
 
-	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM)
 	defer stop()
 	// Start server
 	go func() {
