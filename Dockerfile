@@ -1,5 +1,5 @@
 # --- Builder Stage ---
-FROM golang:1.24.4-alpine3.22 AS builder
+FROM golang:1.25.0-alpine3.22 AS builder
 ARG APP_DIR=/app
 WORKDIR ${APP_DIR}
 COPY go.mod go.sum ./
