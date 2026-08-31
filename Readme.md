@@ -27,7 +27,7 @@ It includes a **Play Timer** feature, ideal for parents or server administrators
 
 - **Primary Language**: Go (1.25+)
 - **Frontend Framework**: [go-app (v10)](https://github.com/maxence-charriere/go-app/v10) (Go compiled to WebAssembly)
-- **Backend Framework**: [Echo (v4)](https://github.com/labstack/echo/v4)
+- **Backend Framework**: [Echo (v5)](https://github.com/labstack/echo/v5)
 - **Database**: MongoDB (`go.mongodb.org/mongo-driver/v2`)
 - **Containerization**: Docker Engine API (`github.com/docker/docker`)
 - **Configuration**: Viper (`config.yaml` with `APP_*` environment variable overrides)

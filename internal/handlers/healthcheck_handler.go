@@ -3,12 +3,12 @@ package handlers
 import (
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/http"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 func Healthcheck(db *db.Client) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			m := c.Request().Method
 			p := c.Request().RequestURI
 			if m == http.MethodGet && p == "/healthcheck" {
@@ -19,7 +19,7 @@ func Healthcheck(db *db.Client) echo.MiddlewareFunc {
 	}
 }
 
-func performHealthCheck(c echo.Context, client *db.Client) error {
+func performHealthCheck(c *echo.Context, client *db.Client) error {
 	if client == nil {
 		return c.String(http.StatusInternalServerError, "DB client not initialized")
 	}

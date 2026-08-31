@@ -3,17 +3,18 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/http"
 	"github.com/ajaxe/mc-manager/internal/job"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AddPlaytimerHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
+func AddPlaytimerHandlers(e *echo.Group, l *slog.Logger, db *db.Client) {
 	h := &playTimerHandler{
 		logger:      l,
 		gameService: NewGameService(l),
@@ -26,14 +27,14 @@ func AddPlaytimerHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
 }
 
 type playTimerHandler struct {
-	logger      echo.Logger
+	logger      *slog.Logger
 	gameService GameService
 	db          *db.Client
 }
 
 // PlayTimer returns a GET handler which responds with active play timer item.
 func (p *playTimerHandler) PlayTimer() echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
+	return func(c *echo.Context) (err error) {
 		pt, err := p.db.ActivePlayTimer(c.Request().Context())
 		if err != nil {
 			err = models.ErrAppGeneric(err)
@@ -54,8 +55,8 @@ func (p *playTimerHandler) PlayTimer() echo.HandlerFunc {
 
 // CreatePlayTimer returns a POST handler which creates a new play timer item.
 func (p *playTimerHandler) CreatePlayTimer() echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
-		cc := c.(*models.AppContext)
+	return func(c *echo.Context) (err error) {
+		cc := models.GetAppContext(c)
 
 		if cc.IsAdmin() == false {
 			return models.NewAppError(http.StatusBadRequest, "Only Poacha can create play timer.", nil)
@@ -77,8 +78,8 @@ func (p *playTimerHandler) CreatePlayTimer() echo.HandlerFunc {
 
 // DeletePlayTimer returns a DELETE handler which deactivates the current play timer item.
 func (p *playTimerHandler) DeletePlayTimer() echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
-		cc := c.(*models.AppContext)
+	return func(c *echo.Context) (err error) {
+		cc := models.GetAppContext(c)
 
 		if cc.IsAdmin() == false {
 			return models.NewAppError(http.StatusBadRequest, "Only Poacha can delete play timer.", nil)
@@ -136,7 +137,7 @@ func (p *playTimerHandler) create(ctx context.Context, d *models.PlayTimerItem) 
 	if err == nil {
 		e := p.gameService.sendMessageToServer(fmt.Sprintf("A new play timer has been set for %d minutes.", d.Minutes))
 		if e != nil {
-			p.logger.Warnf("Failed to send message to server: %v", e)
+			p.logger.Warn(fmt.Sprintf("Failed to send message to server: %v", e))
 		}
 	}
 

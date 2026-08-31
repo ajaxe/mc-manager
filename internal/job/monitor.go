@@ -3,13 +3,13 @@ package job
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/gameserver"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -25,7 +25,10 @@ func StopCurrentPlayTimer() {
 	currentObserver.stop()
 }
 
-func StartMonitor(ctx context.Context, l echo.Logger, client *db.Client) {
+func StartMonitor(ctx context.Context, l *slog.Logger, client *db.Client) {
+	if l == nil {
+		l = slog.Default()
+	}
 	currentObserver.logger = l
 	currentObserver.db = client
 
@@ -34,7 +37,7 @@ func StartMonitor(ctx context.Context, l echo.Logger, client *db.Client) {
 	ops := gameserver.NewGameServerOperations(l, config.LoadAppConfig())
 
 	if err != nil {
-		l.Error("on startup, failed to get active play timer:", err)
+		l.Error(fmt.Sprintf("on startup, failed to get active play timer: %v", err))
 	}
 
 	if i != nil {
@@ -44,7 +47,7 @@ func StartMonitor(ctx context.Context, l echo.Logger, client *db.Client) {
 	for {
 		select {
 		case i := <-inputCh:
-			l.Infof("received job item: %v: end date: %v", i.ID, i.EndDate)
+			l.Info(fmt.Sprintf("received job item: %v: end date: %v", i.ID, i.EndDate))
 			currentObserver.setCurrent(ctx, i)
 		case <-currentObserver.C:
 			sendMessage(ops, currentObserver.remaining())
@@ -87,12 +90,18 @@ func (j *observer) expirePlayTimer(ctx context.Context, p *models.PlayTimerItem)
 	id, err := bson.ObjectIDFromHex(p.ID)
 
 	if err != nil {
-		j.logger.Errorf("failed to parse play timer ID: %v: %v", p.ID, err)
+		if j.logger != nil {
+			j.logger.Error(fmt.Sprintf("failed to parse play timer ID: %v: %v", p.ID, err))
+		}
 		return
 	}
 	if err := j.db.UpdatePlayTimerByID(ctx, id, p); err != nil {
-		j.logger.Errorf("failed to update play timer ID: %v: %v", p.ID, err)
+		if j.logger != nil {
+			j.logger.Error(fmt.Sprintf("failed to update play timer ID: %v: %v", p.ID, err))
+		}
 	} else {
-		j.logger.Infof("Play timer ID: %v expired and updated successfully", p.ID)
+		if j.logger != nil {
+			j.logger.Info(fmt.Sprintf("Play timer ID: %v expired and updated successfully", p.ID))
+		}
 	}
 }

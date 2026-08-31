@@ -9,7 +9,7 @@ import (
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/server"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"github.com/maxence-charriere/go-app/v10/pkg/app"
 )
 
@@ -34,7 +34,7 @@ func Backend(ah *app.Handler) {
 
 	s := server.NewBackendApi(dbClient)
 
-	s.GET("/*", func(c echo.Context) error {
+	s.GET("/*", func(c *echo.Context) error {
 		ah.ServeHTTP(c.Response(), c.Request())
 		return nil
 	})

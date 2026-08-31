@@ -3,15 +3,15 @@ package gameserver
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
 )
 
 type gameserverConsoleOptions struct {
 	ctx         context.Context
-	logger      echo.Logger
+	logger      *slog.Logger
 	cli         *client.Client
 	containerId string
 }
@@ -39,9 +39,9 @@ func sendChatMessage(opts chatMessageOptions) (err error) {
 	}
 	defer r.Close()
 	mt, ok := r.MediaType()
-	opts.logger.Debugf("hijacked response media-type: %s: ok-%v", mt, ok)
+	opts.logger.Debug(fmt.Sprintf("hijacked response media-type: %s: ok-%v", mt, ok))
 	m := fmt.Sprintf("say %s\n", opts.message)
-	opts.logger.Debugf("sending message to %s: %s", opts.containerId, m)
+	opts.logger.Debug(fmt.Sprintf("sending message to %s: %s", opts.containerId, m))
 
 	_, err = r.Conn.Write([]byte(m))
 

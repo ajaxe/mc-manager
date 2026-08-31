@@ -3,17 +3,18 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/http"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AddLaunchHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
+func AddLaunchHandlers(e *echo.Group, l *slog.Logger, db *db.Client) {
 	h := &launchHandler{
 		logger:      l,
 		gameService: NewGameService(l),
@@ -26,19 +27,19 @@ func AddLaunchHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
 }
 
 type launchHandler struct {
-	logger      echo.Logger
+	logger      *slog.Logger
 	gameService GameService
 	db          *db.Client
 }
 
 func (l *launchHandler) DeleteLaunch(s string) echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
+	return func(c *echo.Context) (err error) {
 		return c.String(http.StatusOK, "ok")
 	}
 }
 
 func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
+	return func(c *echo.Context) (err error) {
 		u := &models.CreateLaunchItem{}
 		if err := c.Bind(u); err != nil {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
@@ -53,14 +54,14 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 			return
 		}
 
-		l.logger.Info("Created new launch item: %s", id.Hex())
+		l.logger.Info(fmt.Sprintf("Created new launch item: %s", id.Hex()))
 
 		return c.JSON(http.StatusOK, models.NewApiIDResult(id.Hex()))
 	}
 }
 
 func (l *launchHandler) Launches() echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
+	return func(c *echo.Context) (err error) {
 		dir := c.QueryParam("dir")
 		curID := c.QueryParam("cursorId")
 		pgs := c.QueryParam("pageSize")
@@ -129,11 +130,11 @@ func (l *launchHandler) createLaunch(ctx context.Context, u *models.CreateLaunch
 	}
 
 	if err = gameService.createGameServer(w); err != nil {
-		l.logger.Error("Failed to create game server: %v", err)
+		l.logger.Error(fmt.Sprintf("Failed to create game server: %v", err))
 
 		_, e := l.db.LaunchInsert(ctx, models.ToLaunchItem(w, time.Now().UTC().Format(time.RFC3339), "failed"))
 
-		l.logger.Error("Failed to insert launch item: %v", e)
+		l.logger.Error(fmt.Sprintf("Failed to insert launch item: %v", e))
 
 		err = models.ErrAppGeneric(err)
 		return

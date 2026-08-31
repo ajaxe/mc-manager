@@ -3,6 +3,8 @@ package gameserver
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"slices"
 	"testing"
 	"time"
@@ -11,7 +13,6 @@ import (
 	"github.com/ajaxe/mc-manager/internal/models"
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
-	"github.com/labstack/gommon/log"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -174,7 +175,7 @@ func cleanupContainer(resp container.CreateResponse, t *testing.T) {
 }
 
 func newSut() *GameServerOperations {
-	l := log.New("echo_test")
+	l := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	return &GameServerOperations{
 		Logger: l,
 		Config: &ServiceConfig{

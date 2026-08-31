@@ -6,7 +6,7 @@
 ## 2. Tech Stack & Core Dependencies
 - **Primary Language:** **Go (1.25+)** - Powers both the backend REST API and frontend WebAssembly binary.
 - **Frontend Framework:** **go-app (v10)** (`github.com/maxence-charriere/go-app/v10`) - Compiles Go UI components into a Progressive Web App (PWA) running in WebAssembly (WASM).
-- **Backend Framework:** **Echo (v4)** (`github.com/labstack/echo/v4`) - High-performance HTTP server handling REST API endpoints and static WASM asset distribution.
+- **Backend Framework:** **Echo (v5)** (`github.com/labstack/echo/v5`) - High-performance HTTP server handling REST API endpoints and static WASM asset distribution.
 - **Database:** **MongoDB** (`go.mongodb.org/mongo-driver/v2`) - Stores persistent data for world configurations, launch histories, and play timer session records.
 - **Infrastructure & Orchestration:** **Docker Engine API** (`github.com/docker/docker`, `github.com/docker/cli`) - Orchestrates game server containers, manages host volume bindings, controls server properties, and routes logs.
 - **Configuration Management:** **Viper** (`github.com/spf13/viper`) & **fsnotify** - Manages settings via `config.yaml` with environment variable overrides (`APP_*` prefix) and hot-reloading support.

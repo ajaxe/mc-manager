@@ -3,15 +3,15 @@
 package gameserver
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/docker/cli/cli/connhelper"
 	"github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
 )
 
-func defaultDockerCli(logger echo.Logger) (cli *client.Client, err error) {
+func defaultDockerCli(logger *slog.Logger) (cli *client.Client, err error) {
 	cli, err = dockerCliWindows()
 	logger.Info("Fetching docker client on windows")
 	return

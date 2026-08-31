@@ -3,6 +3,7 @@ package gameserver
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/ajaxe/mc-manager/internal/config"
@@ -10,10 +11,9 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/labstack/echo/v4"
 )
 
-func NewGameServerOperations(l echo.Logger, cfg config.AppConfig) *GameServerOperations {
+func NewGameServerOperations(l *slog.Logger, cfg config.AppConfig) *GameServerOperations {
 	return &GameServerOperations{
 		Logger: l,
 		Config: &ServiceConfig{
@@ -24,7 +24,7 @@ func NewGameServerOperations(l echo.Logger, cfg config.AppConfig) *GameServerOpe
 }
 
 type GameServerOperations struct {
-	Logger echo.Logger
+	Logger *slog.Logger
 	Config *ServiceConfig
 }
 
@@ -130,7 +130,7 @@ func (g *GameServerOperations) listContainers(cli *client.Client) (containers []
 	c := g.Config.Config
 	l := fmt.Sprintf("%s=%s", LabelImageName, c.GameServer.ImageName)
 
-	g.Logger.Infof("listing container with label: %v", l)
+	g.Logger.Info(fmt.Sprintf("listing container with label: %v", l))
 
 	containers, err = cli.ContainerList(context.TODO(), container.ListOptions{
 		Filters: filters.NewArgs(
@@ -157,14 +157,14 @@ func (g *GameServerOperations) createGameServerInternal(w *models.WorldItem, cli
 	err = cli.ContainerStart(ctx, resp.ID, container.StartOptions{})
 
 	if err == nil {
-		g.Logger.Infof("container started, name:%s id:%s", cname, resp.ID)
+		g.Logger.Info(fmt.Sprintf("container started, name:%s id:%s", cname, resp.ID))
 	}
 
 	return
 }
 
 func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *client.Client) (err error) {
-	g.Logger.Infof("stopping container:%s", c.ContainerID)
+	g.Logger.Info(fmt.Sprintf("stopping container:%s", c.ContainerID))
 	err = sendStopCommand(gameserverConsoleOptions{
 		ctx:         context.TODO(),
 		logger:      g.Logger,
@@ -175,7 +175,7 @@ func (g *GameServerOperations) removeContainer(c *models.GameServerDetail, cli *
 	if err != nil {
 		return err
 	} else {
-		g.Logger.Infof("removing container:%s", c.ContainerID)
+		g.Logger.Info(fmt.Sprintf("removing container:%s", c.ContainerID))
 		err = cli.ContainerRemove(context.TODO(), c.ContainerID, container.RemoveOptions{Force: true})
 	}
 	return
@@ -200,7 +200,7 @@ func (g *GameServerOperations) Message(m string) (err error) {
 	containers, err := g.listContainers(cli)
 
 	if len(containers) == 0 {
-		g.Logger.Warnf("no active game server instances found to send message: %s", m)
+		g.Logger.Warn(fmt.Sprintf("no active game server instances found to send message: %s", m))
 	}
 
 	for _, r := range containers {
@@ -214,9 +214,9 @@ func (g *GameServerOperations) Message(m string) (err error) {
 			message: m,
 		})
 		if e != nil {
-			g.Logger.Errorf("failed to send message to %s: %v", r.ID, e)
+			g.Logger.Error(fmt.Sprintf("failed to send message to %s: %v", r.ID, e))
 		} else {
-			g.Logger.Infof("message sent to %s: %s", r.ID, m)
+			g.Logger.Info(fmt.Sprintf("message sent to %s: %s", r.ID, m))
 		}
 	}
 

@@ -2,6 +2,7 @@ package gameserver
 
 import (
 	"fmt"
+	"log/slog"
 	"strings"
 
 	"github.com/ajaxe/mc-manager/internal/config"
@@ -9,7 +10,6 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
-	"github.com/labstack/echo/v4"
 )
 
 const LabelImageName = "mc.manager.image.name"
@@ -20,7 +20,7 @@ const EnvVarLevelName = "MC_LEVEL_NAME"
 const EnvVarLevelSeed = "MC_LEVEL_SEED"
 
 type ServiceConfig struct {
-	Logger echo.Logger
+	Logger *slog.Logger
 	Config config.AppConfig
 }
 
@@ -68,7 +68,7 @@ func (s *ServiceConfig) defaultHostConfig() container.HostConfig {
 		splits := strings.Split(v, ":")
 
 		if len(splits) < 2 {
-			s.Logger.Infof("insufficient info, ignore vol: %s", v)
+			s.Logger.Info(fmt.Sprintf("insufficient info, ignore vol: %s", v))
 			continue
 		}
 
@@ -86,7 +86,7 @@ func (s *ServiceConfig) defaultHostConfig() container.HostConfig {
 			m.ReadOnly = strings.ToLower(splits[2]) == "ro"
 		}
 
-		s.Logger.Infof("adding mount, src:%s target:%s read-only:%v", m.Source, m.Target, m.ReadOnly)
+		s.Logger.Info(fmt.Sprintf("adding mount, src:%s target:%s read-only:%v", m.Source, m.Target, m.ReadOnly))
 		vols = append(vols, m)
 	}
 

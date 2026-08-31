@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log/slog"
 	"os"
 	"path"
 	"regexp"
@@ -15,11 +16,11 @@ import (
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/http"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-func AddWorldsHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
+func AddWorldsHandlers(e *echo.Group, l *slog.Logger, db *db.Client) {
 	h := &worldsHandler{
 		logger:      l,
 		gameService: NewGameService(l),
@@ -33,13 +34,13 @@ func AddWorldsHandlers(e *echo.Group, l echo.Logger, db *db.Client) {
 }
 
 type worldsHandler struct {
-	logger      echo.Logger
+	logger      *slog.Logger
 	gameService GameService
 	db          *db.Client
 }
 
 func (w *worldsHandler) Worlds() echo.HandlerFunc {
-	return func(c echo.Context) (err error) {
+	return func(c *echo.Context) (err error) {
 		d, err := w.db.Worlds(c.Request().Context())
 		if err != nil {
 			return
@@ -70,7 +71,7 @@ func (w *worldsHandler) Worlds() echo.HandlerFunc {
 }
 
 func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		u := &models.WorldItem{}
 		if err := c.Bind(u); err != nil {
 			return models.NewAppError(http.StatusBadRequest, "Bad data.", nil)
@@ -106,7 +107,7 @@ func (w *worldsHandler) CreateWorld() echo.HandlerFunc {
 	}
 }
 func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		i := c.Param(idParam)
 		id, err := bson.ObjectIDFromHex(i)
 		if err != nil {
@@ -121,7 +122,7 @@ func (w *worldsHandler) DeleteWorld(idParam string) echo.HandlerFunc {
 	}
 }
 func (w *worldsHandler) UpdateWorld(idParam string) echo.HandlerFunc {
-	return func(c echo.Context) error {
+	return func(c *echo.Context) error {
 		i := c.Param(idParam)
 		id, err := bson.ObjectIDFromHex(i)
 		if err != nil {
@@ -147,7 +148,7 @@ func (w *worldsHandler) deleteWorld(ctx context.Context, id bson.ObjectID) (err 
 		return
 	}
 
-	w.logger.Infof("found world by id: %v", ww.ID)
+	w.logger.Info(fmt.Sprintf("found world by id: %v", ww.ID))
 
 	if ww.IsFavorite {
 		return models.NewAppError(http.StatusBadRequest, "Cannot delete world labeled as 'Favorite'", nil)
@@ -162,11 +163,11 @@ func (w *worldsHandler) deleteWorld(ctx context.Context, id bson.ObjectID) (err 
 	p := path.Join(cfg.GameServer.WorldDir, ww.Name)
 
 	if _, e := os.Stat(p); e != nil {
-		w.logger.Warnf("path: %s does not exist: %v", p, e)
+		w.logger.Warn(fmt.Sprintf("path: %s does not exist: %v", p, e))
 	}
 
 	if e := os.RemoveAll(p); e != nil {
-		w.logger.Warnf("attempted to remove dir: %s failed: %v", p, e)
+		w.logger.Warn(fmt.Sprintf("attempted to remove dir: %s failed: %v", p, e))
 	}
 
 	return

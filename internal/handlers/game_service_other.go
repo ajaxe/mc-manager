@@ -3,17 +3,18 @@
 package handlers
 
 import (
+	"log/slog"
+
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/gameserver"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
 )
 
 type gameService struct {
 	op *gameserver.GameServerOperations
 }
 
-func NewGameService(logger echo.Logger) GameService {
+func NewGameService(logger *slog.Logger) GameService {
 	ops := gameserver.NewGameServerOperations(logger, config.LoadAppConfig())
 
 	return &gameService{

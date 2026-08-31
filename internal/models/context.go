@@ -4,14 +4,16 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"slices"
 	"sync"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/config"
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 var client *http.Client
@@ -26,16 +28,28 @@ func authHttpClient() *http.Client {
 	return client
 }
 
-func NewAppContext(c echo.Context, l echo.Logger) *AppContext {
+func NewAppContext(c *echo.Context, l *slog.Logger) *AppContext {
+	if l == nil {
+		l = slog.Default()
+	}
 	return &AppContext{
 		Context: c,
 		logger:  l,
 	}
 }
 
+func GetAppContext(c *echo.Context) *AppContext {
+	if v := c.Get("appContext"); v != nil {
+		if ac, ok := v.(*AppContext); ok {
+			return ac
+		}
+	}
+	return NewAppContext(c, slog.Default())
+}
+
 type AppContext struct {
-	echo.Context
-	logger  echo.Logger
+	*echo.Context
+	logger  *slog.Logger
 	isAdmin *bool
 }
 
@@ -43,7 +57,7 @@ func (c *AppContext) IsAdmin() bool {
 	if c.isAdmin == nil {
 		isAdmin, err := c.checkIdentity()
 		if err != nil {
-			c.logger.Errorf("is_admin check failed: %v", err)
+			c.logger.Error(fmt.Sprintf("is_admin check failed: %v", err))
 		}
 		c.isAdmin = &isAdmin
 	}
@@ -56,7 +70,7 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 	cfg := config.LoadAppConfig()
 	if cfg.Server.AuthServerEnabled == false {
 		isAdmin = cfg.IsDev
-		c.logger.Infof("auth server not enabled: isAdmin is false")
+		c.logger.Info("auth server not enabled: isAdmin is false")
 		return
 	}
 	u, err := cfg.AuthIntrospectURL()
@@ -76,9 +90,9 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 		Name:  cfg.Server.AuthCookieName,
 		Value: authCkVal,
 	})
-	c.logger.Infof("setting auth cookie value: %s", authCkVal)
+	c.logger.Info(fmt.Sprintf("setting auth cookie value: %s", authCkVal))
 
-	c.logger.Infof("invoking auth introspect url: %s", u)
+	c.logger.Info(fmt.Sprintf("invoking auth introspect url: %s", u))
 	res, err := authHttpClient().Do(req)
 	if err != nil {
 		return
@@ -90,7 +104,7 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 		err = echo.NewHTTPError(res.StatusCode, string(b))
 		return
 	}
-	c.logger.Info("introspect response: %s", string(b))
+	c.logger.Info(fmt.Sprintf("introspect response: %s", string(b)))
 	d := IntrospectResult{}
 	err = json.Unmarshal(b, &d)
 	if err != nil {
@@ -105,7 +119,7 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 	isAdmin = slices.Contains(cfg.AdminUsers(), d.Username)
 
 	if isAdmin == false {
-		c.logger.Infof("user %s is not in admin list: %v", d.Username, cfg.AdminUsers())
+		c.logger.Info(fmt.Sprintf("user %s is not in admin list: %v", d.Username, cfg.AdminUsers()))
 	}
 
 	return

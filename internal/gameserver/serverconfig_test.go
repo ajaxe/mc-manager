@@ -2,12 +2,13 @@ package gameserver
 
 import (
 	"fmt"
+	"io"
+	"log/slog"
 	"slices"
 	"testing"
 
 	"github.com/ajaxe/mc-manager/internal/config"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/gommon/log"
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
@@ -52,7 +53,7 @@ func TestDefaultConfig(t *testing.T) {
 }
 
 func createServerConfig() ServiceConfig {
-	l := log.New("echo_test")
+	l := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	return ServiceConfig{
 		Logger: l,
 		Config: config.LoadAppConfig(),

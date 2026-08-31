@@ -2,12 +2,13 @@ package job
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/ajaxe/mc-manager/internal/db"
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
 )
 
 var thresholdMinutes = 10
@@ -15,7 +16,7 @@ var warnThreshold = time.Duration(thresholdMinutes) * time.Minute
 
 // observer is a struct that manages the current play timer item and its associated timer.
 type observer struct {
-	logger  echo.Logger
+	logger  *slog.Logger
 	mu      sync.Mutex
 	current *models.PlayTimerItem
 	timer   *time.Timer
@@ -44,10 +45,14 @@ func (j *observer) setCurrent(ctx context.Context, item *models.PlayTimerItem) (
 
 	d := nextTick(j.endDt)
 	if d <= 0 {
-		j.logger.Infof("cannot set current item: play time exceeded Now()")
+		if j.logger != nil {
+			j.logger.Info("cannot set current item: play time exceeded Now()")
+		}
 		j.expirePlayTimer(ctx, item)
 	}
-	j.logger.Infof("setting first tick after %v minutes", int(d.Minutes()))
+	if j.logger != nil {
+		j.logger.Info(fmt.Sprintf("setting first tick after %v minutes", int(d.Minutes())))
+	}
 	j.timer = time.NewTimer(d)
 	j.C = j.timer.C
 
@@ -60,11 +65,15 @@ func (j *observer) setNextTick(ctx context.Context) (done bool) {
 	defer j.mu.Unlock()
 	d := nextTick(j.endDt)
 	if d <= 0 {
-		j.logger.Infof("play time exceeded Now()")
+		if j.logger != nil {
+			j.logger.Info("play time exceeded Now()")
+		}
 		j.expirePlayTimer(ctx, j.current)
 		return true
 	}
-	j.logger.Infof("setting next tick after %v minutes", int(d.Minutes()))
+	if j.logger != nil {
+		j.logger.Info(fmt.Sprintf("setting next tick after %v minutes", int(d.Minutes())))
+	}
 	j.timer = time.NewTimer(d)
 	j.C = j.timer.C
 	return false
@@ -76,7 +85,9 @@ func (j *observer) remaining() time.Duration {
 	defer j.mu.Unlock()
 	diff := j.endDt.Sub(time.Now().UTC())
 
-	j.logger.Infof("remaining duration: %v", diff)
+	if j.logger != nil {
+		j.logger.Info(fmt.Sprintf("remaining duration: %v", diff))
+	}
 
 	return diff
 }
@@ -89,7 +100,9 @@ func (j *observer) stop() {
 		j.timer = nil
 		j.C = nil
 	}
-	j.logger.Info("Stopping observer timer")
+	if j.logger != nil {
+		j.logger.Info("Stopping observer timer")
+	}
 }
 
 // nextTick returns the duration until the next tick when an action is to be taken, like sending message to players

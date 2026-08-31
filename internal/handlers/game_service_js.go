@@ -3,14 +3,15 @@
 package handlers
 
 import (
+	"log/slog"
+
 	"github.com/ajaxe/mc-manager/internal/models"
-	"github.com/labstack/echo/v4"
 )
 
 type gameService struct {
 }
 
-func NewGameService(logger echo.Logger) GameService {
+func NewGameService(logger *slog.Logger) GameService {
 	return &gameService{}
 }
 
