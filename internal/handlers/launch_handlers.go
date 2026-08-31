@@ -54,7 +54,7 @@ func (l *launchHandler) CreateLaunch() echo.HandlerFunc {
 			return
 		}
 
-		l.logger.Info(fmt.Sprintf("Created new launch item: %s", id.Hex()))
+		l.logger.Info("Created new launch item", "launch_id", id.Hex())
 
 		return c.JSON(http.StatusOK, models.NewApiIDResult(id.Hex()))
 	}

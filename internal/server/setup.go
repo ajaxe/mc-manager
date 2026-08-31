@@ -36,7 +36,39 @@ func NewBackendApi(db *db.Client) *echo.Echo {
 		}
 	})
 
-	e.Use(middleware.RequestLogger())
+	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+		LogURI:       true,
+		LogStatus:    true,
+		LogLatency:   true,
+		LogMethod:    true,
+		LogUserAgent: true,
+		LogRemoteIP:  true,
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
+			level := slog.LevelInfo
+			if v.Error != nil || v.Status >= 500 {
+				level = slog.LevelError
+			} else if v.Status >= 400 {
+				level = slog.LevelWarn
+			}
+
+			attrs := []any{
+				"uri", v.URI,
+				"status", v.Status,
+				"latency_ms", v.Latency.Milliseconds(),
+				"method", v.Method,
+				"remote_ip", v.RemoteIP,
+			}
+			if v.UserAgent != "" {
+				attrs = append(attrs, "user_agent", v.UserAgent)
+			}
+			if v.Error != nil {
+				attrs = append(attrs, "error", v.Error.Error())
+			}
+
+			logger.Log(c.Request().Context(), level, "HTTP request", attrs...)
+			return nil
+		},
+	}))
 	e.Use(middleware.Recover())
 	e.Use(handlers.Healthcheck(db))
 
@@ -77,7 +109,7 @@ func Start(e *echo.Echo, db *db.Client) {
 	}
 
 	if err != nil && err != http.ErrServerClosed {
-		e.Logger.Error(fmt.Sprintf("shutting down the server: %v", err))
+		e.Logger.Error("shutting down the server", "error", err)
 		os.Exit(1)
 	}
 

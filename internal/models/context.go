@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -57,7 +56,7 @@ func (c *AppContext) IsAdmin() bool {
 	if c.isAdmin == nil {
 		isAdmin, err := c.checkIdentity()
 		if err != nil {
-			c.logger.Error(fmt.Sprintf("is_admin check failed: %v", err))
+			c.logger.Error("is_admin check failed", "error", err)
 		}
 		c.isAdmin = &isAdmin
 	}
@@ -90,9 +89,9 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 		Name:  cfg.Server.AuthCookieName,
 		Value: authCkVal,
 	})
-	c.logger.Info(fmt.Sprintf("setting auth cookie value: %s", authCkVal))
+	c.logger.Info("setting auth cookie value", "auth_cookie", authCkVal)
 
-	c.logger.Info(fmt.Sprintf("invoking auth introspect url: %s", u))
+	c.logger.Info("invoking auth introspect url", "url", u)
 	res, err := authHttpClient().Do(req)
 	if err != nil {
 		return
@@ -104,7 +103,7 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 		err = echo.NewHTTPError(res.StatusCode, string(b))
 		return
 	}
-	c.logger.Info(fmt.Sprintf("introspect response: %s", string(b)))
+	c.logger.Info("introspect response", "response", string(b))
 	d := IntrospectResult{}
 	err = json.Unmarshal(b, &d)
 	if err != nil {
@@ -119,7 +118,7 @@ func (c *AppContext) checkIdentity() (isAdmin bool, err error) {
 	isAdmin = slices.Contains(cfg.AdminUsers(), d.Username)
 
 	if isAdmin == false {
-		c.logger.Info(fmt.Sprintf("user %s is not in admin list: %v", d.Username, cfg.AdminUsers()))
+		c.logger.Info("user is not in admin list", "username", d.Username, "admin_users", cfg.AdminUsers())
 	}
 
 	return
