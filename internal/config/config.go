@@ -53,7 +53,7 @@ type AppConfig struct {
 		Logging    struct {
 			Driver  string            `mapstructure:"driver"`
 			Options map[string]string `mapstructure:"options"`
-		}
+		} `mapstructure:"logging"`
 	} `mapstructure:"game_server"`
 }
 

@@ -129,3 +129,54 @@ func TestAuthIntrospectURL(t *testing.T) {
 	os.Unsetenv("APP_SERVER_AUTH_SERVER_URL")
 	os.Unsetenv("APP_SERVER_AUTH_INTROSPECT_PATH")
 }
+
+func TestEnvOverride_Ok(t *testing.T) {
+	t.Setenv("APP_SERVER_PORT", "9090")
+	t.Setenv("APP_IS_DEV", "false")
+	t.Setenv("APP_DATABASE_CONNECTION_URI", "mongodb://custom:27017")
+	t.Setenv("APP_DATABASE_DB_NAME", "custom_db")
+	t.Setenv("APP_GAME_SERVER_HOSTING_DIR", "/tmp/custom")
+	t.Setenv("APP_GAME_SERVER_LOGGING_DRIVER", "json-file")
+
+	config, err := loadAppConfigInternal("../../", "config")
+	if err != nil {
+		t.Fatalf("failed to load app config: %v", err)
+	}
+
+	if config.Server.Port != "9090" {
+		t.Errorf("expected server port 9090, got: %s", config.Server.Port)
+	}
+	if config.IsDev != false {
+		t.Errorf("expected is_dev false, got: %v", config.IsDev)
+	}
+	if config.Database.ConnectionURI != "mongodb://custom:27017" {
+		t.Errorf("expected connection_uri 'mongodb://custom:27017', got: %s", config.Database.ConnectionURI)
+	}
+	if config.Database.DbName != "custom_db" {
+		t.Errorf("expected db_name 'custom_db', got: %s", config.Database.DbName)
+	}
+	if config.GameServer.HostingDir != "/tmp/custom" {
+		t.Errorf("expected hosting_dir '/tmp/custom', got: %s", config.GameServer.HostingDir)
+	}
+	if config.GameServer.Logging.Driver != "json-file" {
+		t.Errorf("expected logging driver 'json-file', got: %s", config.GameServer.Logging.Driver)
+	}
+}
+
+func TestMissingConfigFile_EnvOnly(t *testing.T) {
+	t.Setenv("APP_SERVER_PORT", "7070")
+	t.Setenv("APP_DATABASE_DB_NAME", "env_db")
+
+	config, err := loadAppConfigInternal("non_existent_dir", "non_existent_config")
+	if err != nil {
+		t.Fatalf("expected no error for missing config file with env vars set, got: %v", err)
+	}
+
+	if config.Server.Port != "7070" {
+		t.Errorf("expected server port '7070', got: '%s'", config.Server.Port)
+	}
+	if config.Database.DbName != "env_db" {
+		t.Errorf("expected db_name 'env_db', got: '%s'", config.Database.DbName)
+	}
+}
+

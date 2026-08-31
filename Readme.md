@@ -4,131 +4,126 @@ A web-based management tool for Minecraft Bedrock dedicated servers running in D
 
 ## Overview
 
-MC-Manager provides a user-friendly web interface to manage multiple Minecraft Bedrock server worlds. It allows you to easily configure, launch, and switch between different worlds without manually editing files or using the command line. The application is built with Go and uses Docker to containerize and run the Minecraft servers, ensuring a clean and isolated environment for each world.
+**MC-Manager** provides a modern, responsive web interface to manage multiple Minecraft Bedrock server worlds. It enables creating, configuring, launching, and switching between different worlds without manually editing configuration files or running command-line scripts. The application is built with Go and Docker to containerize game server instances, ensuring clean isolation and simple management.
 
-It also includes a "Play Timer" feature, perfect for parents or server admins who want to limit session playtime. The server will automatically shut down after a set duration, with periodic in-game warnings for the players.
+It includes a **Play Timer** feature, ideal for parents or server administrators who want to limit gameplay session durations. The server automatically shuts down after a set duration, broadcasting periodic in-game warning messages to connected players.
+
+---
 
 ## Features
 
-- **Web-based UI**: Manage your server from anywhere using a modern, responsive web interface built with `go-app` (Go compiled to WebAssembly).
-- **Multi-world Management**: Create and store configurations for multiple worlds. The application ensures that only one Minecraft server Docker container is active at a time, allowing you to seamlessly switch between your defined worlds with a single click.
-- **Docker Integration**: Runs Minecraft servers in isolated Docker containers for better security and resource management.
-- **Dynamic Configuration**: Modify world settings like Game Mode (`survival`, `creative`, etc.) directly from the UI.
-- **Play Timer**: Set a time limit for a gameplay session. The server will automatically stop, and players will receive countdown notifications.
-- **Favorite Worlds**: Mark your most-used worlds for quick access.
-- **Secure**: Supports integration with an authentication proxy for secure access.
-- **PWA Support**: The frontend is a Progressive Web App that can be "installed" on your desktop or mobile device and notifies you when updates are available.
+- **WebAssembly PWA UI**: Single Page Application (PWA) built with `go-app` (v10), compiling Go UI components directly into WebAssembly (`app.wasm`).
+- **Multi-World Orchestration**: Configure and store multiple world settings. MC-Manager enforces a single active container rule, stopping running instances before launching a new world.
+- **Docker SDK Integration**: Direct orchestration of Minecraft Bedrock server containers via the Docker Engine API.
+- **Dynamic Server Properties**: Modify game mode (`survival`, `creative`, etc.), level names, seeds, and server settings directly from the web interface.
+- **Play Timer & In-Game Broadcasts**: Set session timers with automated countdown warnings sent into the Minecraft console via `docker exec`.
+- **Favorite Worlds**: Mark favorite worlds for quick access and deletion protection.
+- **Forward Authentication Integration**: Supports session cookie checks and redirect authentication proxies (Authelia, Authentik).
+- **Responsive Bootstrap 5 Design**: Desktop and mobile-friendly UI layout.
+
+---
 
 ## Technology Stack
 
-- **Backend**: Go
-- **Frontend**: Go (compiled to Wasm) using go-app
-- **Database**: MongoDB
-- **Containerization**: Docker
-- **UI Library**: Bootstrap
+- **Primary Language**: Go (1.25+)
+- **Frontend Framework**: [go-app (v10)](https://github.com/maxence-charriere/go-app/v10) (Go compiled to WebAssembly)
+- **Backend Framework**: [Echo (v4)](https://github.com/labstack/echo/v4)
+- **Database**: MongoDB (`go.mongodb.org/mongo-driver/v2`)
+- **Containerization**: Docker Engine API (`github.com/docker/docker`)
+- **Configuration**: Viper (`config.yaml` with `APP_*` environment variable overrides)
+- **UI & Styling**: Bootstrap 5
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
+* **Go**: 1.25 or newer
+* **Docker Engine / Docker Desktop**: Running with socket or named pipe access
+* **MongoDB**: Instance running locally or accessible via network
 
-- Go (version 1.18 or newer)
-- Docker
-- MongoDB
+### Installation & Execution
 
-### Installation
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/ajaxe/mc-manager.git
+   cd mc-manager
+   ```
 
-1.  **Clone the repository:**
+2. **Configure the application:**
+   Copy or edit `config.yaml` in the root directory. See the **Configuration** section below for field descriptions.
 
-    ```bash
-    git clone https://github.com/ajaxe/mc-manager.git
-    cd mc-manager
-    ```
+3. **Build the application:**
+   Build the WebAssembly frontend asset and native backend server binary into `./tmp/`:
+   ```bash
+   make build
+   ```
 
-2.  **Configure the application:**
-    Create a `config.yml` file in the root of the project. You can use the example below as a starting point. See the **Configuration** section for more details on each option.
+4. **Run the server:**
+   ```bash
+   make run
+   ```
+   Access the web interface at `http://localhost:8000` (or your configured port).
 
-3.  **Build the application:**
+5. **Clean build artifacts:**
+   ```bash
+   make clean
+   ```
 
-    ```bash
-    # This will build the server binary
-    go build -o mc-manager ./cmd/server
-    ```
-
-4.  **Run the application:**
-    ```bash
-    ./mc-manager
-    ```
-    The server will start, and you can access the web UI at `http://localhost:8080` (or the port you specified in your config).
+---
 
 ## Configuration
 
-The application is configured via a `config.yml` file. The structure is based on the `AppConfig` struct in `internal/config/config.go`.
+The application reads configuration from `config.yaml` using Viper, supporting environment variable overrides prefixed with `APP_` (e.g., `APP_SERVER_PORT=8080`).
 
-Here is an example with explanations for each field:
+### Example `config.yaml`
 
 ```yaml
+is_dev: true
+
 server:
-  # Port for the web server to listen on.
-  port: "8080"
-
-  # (Optional) For enabling HTTPS on the development server.
-  # cert_file: "/path/to/cert.pem"
-  # key_file: "/path/to/key.pem"
-
-  # (Optional) Required if running Docker on Windows/macOS via Docker Desktop.
-  # Use "unix:///var/run/docker.sock" on Linux.
-  docker_host_url: "npipe:////./pipe/docker_engine"
-
-  # (Optional) If using an external authentication provider (e.g., Authelia, Authentik),
-  # this is the URL the user will be redirected to for login.
-  auth_redirect_url: "https://auth.example.com/"
-
-  # The name of the cookie to check for an authenticated session.
-  auth_cookie_name: "my_auth_cookie"
-
-  # A secret token sent to the auth provider to identify this service.
-  auth_token: "your-secret-auth-token"
+  # Port for the REST API and WASM server to listen on
+  port: 8000
+  # Optional TLS certificate and key paths
+  cert_file: ""
+  key_file: ""
+  # Docker host URL (e.g. unix:///var/run/docker.sock or npipe:////./pipe/docker_engine)
+  docker_host_url: ""
+  # Forward auth settings
+  auth_token: ""
+  auth_server_enabled: false
+  auth_server_url: ""
+  auth_redirect_path: "/login/check"
+  auth_introspect_path: "/login/introspect"
+  auth_cookie_name: ".fwd-auth-custom"
+  admins: "admin"
 
 database:
-  # Connection string for your MongoDB instance.
   connection_uri: "mongodb://localhost:27017"
-  # The name of the database to use.
   db_name: "mc_manager"
 
 game_server:
-  # The base directory on the host where all game server files will be stored.
+  # Host directory where server world files are hosted
   hosting_dir: "/opt/mc-manager/servers"
-
-  # The directory inside the container where world data is stored.
-  # This should generally not be changed.
-  world_dir: "/data/worlds"
-
-  # The Docker image for the Minecraft Bedrock server.
-  # Example: "itzg/minecraft-bedrock-server"
+  # Target directory inside container for world data
+  world_dir: "/minecraft/worlds"
+  # Minecraft Bedrock server container image
   image_name: "itzg/minecraft-bedrock-server"
-
-  # Environment variables to pass to the container.
-  # These are often used to configure the itzg/minecraft-bedrock-server image.
+  # Default container environment variables
   env_vars:
     - "EULA=TRUE"
     - "GAMEMODE=survival"
     - "DIFFICULTY=normal"
-
-  # Host-to-container volume mappings.
-  # The application automatically manages the world data volume.
+  # Additional volume mappings
   volumes: []
-
-  # Docker labels to apply to the container for discovery or management (e.g., for Traefik).
+  # Docker container labels
   labels:
     - "traefik.enable=true"
-
-  # Docker networks to connect the container to.
+  # Docker network names
   networks:
-    - "proxy_network"
-
-  # (Optional) Configure Docker container logging.
+    - "public-proxy"
+  # Logging configuration
   logging:
     driver: "json-file"
     options:
@@ -136,55 +131,56 @@ game_server:
       max-file: "3"
 ```
 
-## Development notes
+---
 
-### Dev docker configuration
+## Development & Testing
 
-Created shared volumen mapped to minecraft worlds directory, uising
+### Live Development (Watch Mode)
+
+Use `wgo` for automatic rebuilding and hot-reloading on Go/JS/CSS changes:
+
+```pwsh
+wgo -xdir tmp -file .go -file .js -file .css make run
+```
+
+### Go Build Tags
+
+MC-Manager uses Go build tags to isolate WebAssembly client code from native Docker SDK dependencies:
+
+* `//go:build wasm`: Compiles `app.wasm` for the browser frontend target. Excludes Docker SDK and OS system calls.
+* `//go:build !wasm` / `//go:build unix || windows`: Compiles the native OS backend server binary with Docker Engine API support.
+
+### Testing Commands
+
+* **Run all package unit tests:**
+  ```bash
+  go test ./...
+  ```
+
+* **Run game server package unit tests:**
+  ```bash
+  go test -v ./internal/gameserver
+  ```
+
+* **Build integration test Docker image:**
+  ```bash
+  docker build . --tag apogee-dev/mc-manager-tests:local -f Dockerfile.test
+  ```
+
+* **Execute containerized integration tests:**
+  ```bash
+  docker run --volume=/var/run/docker.sock:/var/run/docker.sock apogee-dev/mc-manager-tests:local
+  ```
+
+### Production Docker Image
+
+To build the production-ready Docker image:
 
 ```bash
-docker volume create --driver local \
-  --opt type=none \
-  --opt device=<host_dir>/minecraft/data/worlds \
-  --opt o=bind minecraft-worlds
+make prod
 ```
-
-Above volume is mapped to container path _/minecraft/worlds_. The application also removes the world data folder when a world is deleted.
-
-### Build tags
-
-`js` build tag is used to exclude any dependency on `gameserver` package & related docker client SDK, when build wasm package.
-
-`windows` build tag is used to have alternate way of initializing docker client when debugging on windows OS
-
-`unix` build tag is used for linux compilation where we need access to `/var/run/docker.sock` socket.
-
-### Debugging commands
-
-To support dynamic build, to be as close as HMR
-
-```pwsh
-wgo -xdir tmp -file .go -file .js -file .css  make run
-```
-
-### Docker image build commands
-
-Image build command
-
-```pwsh
+or manually:
+```bash
 docker build . --tag apogee-dev/mc-manager:local -f Dockerfile
 ```
 
-### Docker test commands
-
-Test image build command
-
-```pwsh
-docker build . --tag apogee-dev/mc-manager-tests:local -f Dockerfile.test
-```
-
-Test run command
-
-```pwsh
-docker run --volume=/var/run/docker.sock:/var/run/docker.sock apogee-dev/mc-manager-tests:local
-```
