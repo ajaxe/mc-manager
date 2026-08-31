@@ -130,6 +130,7 @@ func (c *AppContext) AuthCookieValue() (v string) {
 }
 func (c *AppContext) authCookieValueInternal(cfg config.AppConfig) (v string) {
 	ck := c.Request().Cookies()
+	slog.Info("checking for login cookie", "auth_cookie_name", cfg.Server.AuthCookieName)
 	for _, c := range ck {
 		if c.Name == cfg.Server.AuthCookieName {
 			v = c.Value

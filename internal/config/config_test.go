@@ -71,11 +71,13 @@ func TestAuthRedirectURL(t *testing.T) {
 	token := "1234"
 	url := "https://localhost-test.com"
 	path := "/"
+	ck := ".test.auth.cookie"
 
 	os.Setenv("APP_SERVER_AUTH_SERVER_ENABLED", "true")
 	os.Setenv("APP_SERVER_AUTH_TOKEN", token)
 	os.Setenv("APP_SERVER_AUTH_SERVER_URL", url)
 	os.Setenv("APP_SERVER_AUTH_REDIRECT_PATH", path)
+	os.Setenv("APP_SERVER_AUTH_COOKIE_NAME", ck)
 
 	config, err := loadAppConfigInternal("../../", "config")
 
@@ -98,6 +100,7 @@ func TestAuthRedirectURL(t *testing.T) {
 	os.Unsetenv("APP_SERVER_AUTH_TOKEN")
 	os.Unsetenv("APP_SERVER_AUTH_SERVER_URL")
 	os.Unsetenv("APP_SERVER_AUTH_REDIRECT_PATH")
+	os.Unsetenv("APP_SERVER_AUTH_COOKIE_NAME")
 }
 
 func TestAuthIntrospectURL(t *testing.T) {
@@ -131,12 +134,14 @@ func TestAuthIntrospectURL(t *testing.T) {
 }
 
 func TestEnvOverride_Ok(t *testing.T) {
+	ck := ".test.auth.cookie"
 	t.Setenv("APP_SERVER_PORT", "9090")
 	t.Setenv("APP_IS_DEV", "false")
 	t.Setenv("APP_DATABASE_CONNECTION_URI", "mongodb://custom:27017")
 	t.Setenv("APP_DATABASE_DB_NAME", "custom_db")
 	t.Setenv("APP_GAME_SERVER_HOSTING_DIR", "/tmp/custom")
 	t.Setenv("APP_GAME_SERVER_LOGGING_DRIVER", "json-file")
+	t.Setenv("APP_SERVER_AUTH_COOKIE_NAME", ck)
 
 	config, err := loadAppConfigInternal("../../", "config")
 	if err != nil {
@@ -161,6 +166,9 @@ func TestEnvOverride_Ok(t *testing.T) {
 	if config.GameServer.Logging.Driver != "json-file" {
 		t.Errorf("expected logging driver 'json-file', got: %s", config.GameServer.Logging.Driver)
 	}
+	if config.Server.AuthCookieName != ck {
+		t.Errorf("expected auth cookie name '%s', got: %s", ck, config.Server.AuthCookieName)
+	}
 }
 
 func TestMissingConfigFile_EnvOnly(t *testing.T) {
@@ -179,4 +187,3 @@ func TestMissingConfigFile_EnvOnly(t *testing.T) {
 		t.Errorf("expected db_name 'env_db', got: '%s'", config.Database.DbName)
 	}
 }
-

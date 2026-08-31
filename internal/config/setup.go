@@ -29,10 +29,7 @@ func loadAppConfigInternal(path, name string) (config AppConfig, err error) {
 	bindStructKeys(v, reflect.TypeOf(AppConfig{}), "")
 
 	v.AddConfigPath(path)
-	if path == "." {
-		v.AddConfigPath("..")
-		v.AddConfigPath("../..")
-	}
+	v.SetConfigType("yaml")
 	v.SetConfigName(name)
 
 	err = v.ReadInConfig()
@@ -94,4 +91,3 @@ func bindStructKeys(v *viper.Viper, t reflect.Type, prefix string) {
 		}
 	}
 }
-
