@@ -3,6 +3,7 @@
 package gameserver
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -20,9 +21,11 @@ func defaultDockerCli(logger *slog.Logger) (cli *client.Client, err error) {
 func dockerCliWindows() (cli *client.Client, err error) {
 	c := config.LoadAppConfig()
 	helper, err := connhelper.GetConnectionHelper(c.Server.DockerHostURL)
-
 	if err != nil {
-		return
+		return nil, err
+	}
+	if helper == nil {
+		return nil, fmt.Errorf("no connection helper found for docker host url: %s", c.Server.DockerHostURL)
 	}
 
 	httpClient := &http.Client{

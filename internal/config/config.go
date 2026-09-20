@@ -5,6 +5,20 @@ import (
 	"strings"
 )
 
+type ResourceSpec struct {
+	Memory string `mapstructure:"memory"`
+	CPUs   string `mapstructure:"cpus"`
+}
+
+type DeployResourcesConfig struct {
+	Limits       ResourceSpec `mapstructure:"limits"`
+	Reservations ResourceSpec `mapstructure:"reservations"`
+}
+
+type DeployConfig struct {
+	Resources DeployResourcesConfig `mapstructure:"resources"`
+}
+
 type AppConfig struct {
 	IsDev  bool `mapstructure:"is_dev"`
 	Server struct {
@@ -54,6 +68,7 @@ type AppConfig struct {
 			Driver  string            `mapstructure:"driver"`
 			Options map[string]string `mapstructure:"options"`
 		} `mapstructure:"logging"`
+		Deploy DeployConfig `mapstructure:"deploy"`
 	} `mapstructure:"game_server"`
 }
 

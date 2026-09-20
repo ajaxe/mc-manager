@@ -3,6 +3,7 @@ package gameserver
 import (
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 
 	"github.com/ajaxe/mc-manager/internal/config"
@@ -10,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/network"
+	"github.com/docker/go-units"
 )
 
 const LabelImageName = "mc.manager.image.name"
@@ -90,12 +92,48 @@ func (s *ServiceConfig) defaultHostConfig() container.HostConfig {
 		vols = append(vols, m)
 	}
 
+	resources := container.Resources{}
+	deployRes := s.Config.GameServer.Deploy.Resources
+
+	if limitMem := deployRes.Limits.Memory; limitMem != "" {
+		if bytes, err := units.RAMInBytes(limitMem); err == nil {
+			resources.Memory = bytes
+		} else {
+			s.Logger.Warn(fmt.Sprintf("failed to parse deploy limits memory '%s': %v", limitMem, err))
+		}
+	}
+
+	if limitCPUs := deployRes.Limits.CPUs; limitCPUs != "" {
+		if cpus, err := strconv.ParseFloat(limitCPUs, 64); err == nil && cpus > 0 {
+			resources.NanoCPUs = int64(cpus * 1e9)
+		} else if err != nil {
+			s.Logger.Warn(fmt.Sprintf("failed to parse deploy limits cpus '%s': %v", limitCPUs, err))
+		}
+	}
+
+	if resMem := deployRes.Reservations.Memory; resMem != "" {
+		if bytes, err := units.RAMInBytes(resMem); err == nil {
+			resources.MemoryReservation = bytes
+		} else {
+			s.Logger.Warn(fmt.Sprintf("failed to parse deploy reservations memory '%s': %v", resMem, err))
+		}
+	}
+
+	if resCPUs := deployRes.Reservations.CPUs; resCPUs != "" {
+		if cpus, err := strconv.ParseFloat(resCPUs, 64); err == nil && cpus > 0 {
+			resources.CPUShares = int64(1024 * cpus)
+		} else if err != nil {
+			s.Logger.Warn(fmt.Sprintf("failed to parse deploy reservations cpus '%s': %v", resCPUs, err))
+		}
+	}
+
 	return container.HostConfig{
 		LogConfig: container.LogConfig{
 			Type:   s.Config.GameServer.Logging.Driver,
 			Config: s.Config.GameServer.Logging.Options,
 		},
-		Mounts: vols,
+		Mounts:    vols,
+		Resources: resources,
 	}
 }
 

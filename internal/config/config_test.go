@@ -64,6 +64,18 @@ func TestReadConfig_Ok(t *testing.T) {
 	if config.GameServer.Logging.Options["loki-url"] == "" {
 		t.Fatal("Game server logging loki-url option is empty")
 	}
+	if config.GameServer.Deploy.Resources.Limits.Memory != "512m" {
+		t.Fatalf("expected deploy limits memory '512m', got: %s", config.GameServer.Deploy.Resources.Limits.Memory)
+	}
+	if config.GameServer.Deploy.Resources.Limits.CPUs != "0.50" {
+		t.Fatalf("expected deploy limits cpus '0.50', got: %s", config.GameServer.Deploy.Resources.Limits.CPUs)
+	}
+	if config.GameServer.Deploy.Resources.Reservations.Memory != "128m" {
+		t.Fatalf("expected deploy reservations memory '128m', got: %s", config.GameServer.Deploy.Resources.Reservations.Memory)
+	}
+	if config.GameServer.Deploy.Resources.Reservations.CPUs != "0.10" {
+		t.Fatalf("expected deploy reservations cpus '0.10', got: %s", config.GameServer.Deploy.Resources.Reservations.CPUs)
+	}
 	os.Unsetenv("APP_SERVER_AUTH_TOKEN")
 }
 
@@ -141,6 +153,10 @@ func TestEnvOverride_Ok(t *testing.T) {
 	t.Setenv("APP_DATABASE_DB_NAME", "custom_db")
 	t.Setenv("APP_GAME_SERVER_HOSTING_DIR", "/tmp/custom")
 	t.Setenv("APP_GAME_SERVER_LOGGING_DRIVER", "json-file")
+	t.Setenv("APP_GAME_SERVER_DEPLOY_RESOURCES_LIMITS_MEMORY", "1g")
+	t.Setenv("APP_GAME_SERVER_DEPLOY_RESOURCES_LIMITS_CPUS", "1.5")
+	t.Setenv("APP_GAME_SERVER_DEPLOY_RESOURCES_RESERVATIONS_MEMORY", "256m")
+	t.Setenv("APP_GAME_SERVER_DEPLOY_RESOURCES_RESERVATIONS_CPUS", "0.25")
 	t.Setenv("APP_SERVER_AUTH_COOKIE_NAME", ck)
 
 	config, err := loadAppConfigInternal("../../", "config")
@@ -165,6 +181,18 @@ func TestEnvOverride_Ok(t *testing.T) {
 	}
 	if config.GameServer.Logging.Driver != "json-file" {
 		t.Errorf("expected logging driver 'json-file', got: %s", config.GameServer.Logging.Driver)
+	}
+	if config.GameServer.Deploy.Resources.Limits.Memory != "1g" {
+		t.Errorf("expected deploy limits memory '1g', got: %s", config.GameServer.Deploy.Resources.Limits.Memory)
+	}
+	if config.GameServer.Deploy.Resources.Limits.CPUs != "1.5" {
+		t.Errorf("expected deploy limits cpus '1.5', got: %s", config.GameServer.Deploy.Resources.Limits.CPUs)
+	}
+	if config.GameServer.Deploy.Resources.Reservations.Memory != "256m" {
+		t.Errorf("expected deploy reservations memory '256m', got: %s", config.GameServer.Deploy.Resources.Reservations.Memory)
+	}
+	if config.GameServer.Deploy.Resources.Reservations.CPUs != "0.25" {
+		t.Errorf("expected deploy reservations cpus '0.25', got: %s", config.GameServer.Deploy.Resources.Reservations.CPUs)
 	}
 	if config.Server.AuthCookieName != ck {
 		t.Errorf("expected auth cookie name '%s', got: %s", ck, config.Server.AuthCookieName)

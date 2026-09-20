@@ -52,6 +52,38 @@ func TestDefaultConfig(t *testing.T) {
 	}
 }
 
+func TestDefaultHostConfigResources(t *testing.T) {
+	sut := createServerConfig()
+
+	// Override config with known test values
+	sut.Config.GameServer.Deploy.Resources.Limits.Memory = "512m"
+	sut.Config.GameServer.Deploy.Resources.Limits.CPUs = "0.50"
+	sut.Config.GameServer.Deploy.Resources.Reservations.Memory = "128m"
+	sut.Config.GameServer.Deploy.Resources.Reservations.CPUs = "0.10"
+
+	hostConfig := sut.defaultHostConfig()
+
+	expectedMemory := int64(512 * 1024 * 1024)
+	if hostConfig.Resources.Memory != expectedMemory {
+		t.Errorf("expected Memory %d, got: %d", expectedMemory, hostConfig.Resources.Memory)
+	}
+
+	expectedNanoCPUs := int64(500000000)
+	if hostConfig.Resources.NanoCPUs != expectedNanoCPUs {
+		t.Errorf("expected NanoCPUs %d, got: %d", expectedNanoCPUs, hostConfig.Resources.NanoCPUs)
+	}
+
+	expectedMemoryReservation := int64(128 * 1024 * 1024)
+	if hostConfig.Resources.MemoryReservation != expectedMemoryReservation {
+		t.Errorf("expected MemoryReservation %d, got: %d", expectedMemoryReservation, hostConfig.Resources.MemoryReservation)
+	}
+
+	expectedCPUShares := int64(102)
+	if hostConfig.Resources.CPUShares != expectedCPUShares {
+		t.Errorf("expected CPUShares %d, got: %d", expectedCPUShares, hostConfig.Resources.CPUShares)
+	}
+}
+
 func createServerConfig() ServiceConfig {
 	l := slog.New(slog.NewJSONHandler(io.Discard, nil))
 	return ServiceConfig{
