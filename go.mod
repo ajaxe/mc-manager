@@ -3,7 +3,7 @@ module github.com/ajaxe/mc-manager
 go 1.26.0
 
 require (
-	github.com/docker/cli v29.9.0+incompatible
+	github.com/docker/cli v29.9.1+incompatible
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/fsnotify/fsnotify v1.10.1
