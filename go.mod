@@ -3,11 +3,11 @@ module github.com/ajaxe/mc-manager
 go 1.26.0
 
 require (
-	github.com/docker/cli v29.9.1+incompatible
+	github.com/docker/cli v29.9.2+incompatible
 	github.com/docker/docker v28.5.2+incompatible
 	github.com/docker/go-units v0.5.0
 	github.com/fsnotify/fsnotify v1.10.1
-	github.com/labstack/echo/v5 v5.4.0
+	github.com/labstack/echo/v5 v5.4.2
 	github.com/maxence-charriere/go-app/v10 v10.1.11
 	github.com/spf13/viper v1.21.0
 	go.mongodb.org/mongo-driver/v2 v2.9.2
